@@ -26,7 +26,7 @@
   --navh:4rem;
 }
 /* 整個介面以螢幕寬度為基準等比縮放 */
-html{font-size:clamp(16px,4.35vw,32px)}
+html{font-size:clamp(15px,4.1vw,21px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%;overscroll-behavior-y:none}
 body{
@@ -54,7 +54,7 @@ button{font-family:var(--sans);color:inherit}
 .mpill input{position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none}
 
 main{
-  padding:calc(env(safe-area-inset-top) + 3.9rem) 1.25rem calc(var(--navh) + env(safe-area-inset-bottom) + 1.6rem);
+  padding:calc(env(safe-area-inset-top) + 3.9rem) 1.25rem calc(var(--navh) + max(env(safe-area-inset-bottom), .9rem) + 1.6rem);
   max-width:34rem;margin:0 auto;
 }
 .view{display:none}
@@ -63,8 +63,8 @@ main{
 
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
-  height:calc(var(--navh) + env(safe-area-inset-bottom));
-  padding-bottom:env(safe-area-inset-bottom);
+  height:calc(var(--navh) + max(env(safe-area-inset-bottom), .9rem));
+  padding-bottom:max(env(safe-area-inset-bottom), .9rem);
   background:rgba(255,255,255,.94);
   backdrop-filter:saturate(180%) blur(.9rem);
   -webkit-backdrop-filter:saturate(180%) blur(.9rem);
@@ -86,7 +86,8 @@ main{
 .hero{padding:1.5rem 1.38rem 1.25rem}
 .hero .lab{font-size:.75rem;color:var(--ink-2);letter-spacing:.14em;margin:0 0 .5rem}
 .hero .fig{
-  font-family:var(--mono);font-size:2.38rem;font-weight:500;line-height:1.1;margin:0;
+  font-family:var(--mono);font-size:clamp(1.6rem,8.6vw,2.38rem);font-weight:500;line-height:1.15;margin:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   font-variant-numeric:tabular-nums;letter-spacing:-.02em;
 }
 .hero .fig i{font-style:normal;font-size:.94rem;color:var(--ink-2);margin-right:.44rem}
@@ -147,18 +148,18 @@ main{
 .btn.sec{background:var(--card);color:var(--ink-2);flex:0 0 5.75rem;box-shadow:none;border:.06rem solid var(--line)}
 
 .ent{
-  display:flex;align-items:center;gap:.75rem;width:100%;
+  display:flex;align-items:center;gap:.44rem;width:100%;min-width:0;
   background:none;border:none;border-bottom:.06rem solid var(--line);
   padding:.94rem .13rem;cursor:pointer;text-align:left;
 }
 .ent:last-child{border-bottom:none}
-.ent .ym{font-family:var(--mono);font-size:.81rem;color:var(--ink-2);width:3.9rem;flex:none}
-.ent .sp{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);width:4.5rem;flex:none;text-align:right}
-.ent .cg{font-family:var(--mono);font-size:.78rem;width:4.6rem;flex:none;text-align:right}
-.ent .nv{font-family:var(--mono);font-size:1.06rem;margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
-.enth{display:flex;gap:.75rem;padding:0 .13rem .56rem;font-size:.66rem;color:var(--ink-3);border-bottom:.06rem solid var(--line)}
-.enth .ym{width:3.9rem;flex:none} .enth .cg{width:4.6rem;flex:none;text-align:right}
-.enth .sp{width:4.5rem;flex:none;text-align:right} .enth .nv{margin-left:auto}
+.ent .ym{font-family:var(--mono);font-size:.75rem;color:var(--ink-2);width:3.3rem;flex:none}
+.ent .sp{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);width:3.4rem;flex:none;text-align:right}
+.ent .cg{font-family:var(--mono);font-size:.72rem;width:3.5rem;flex:none;text-align:right}
+.ent .nv{font-family:var(--mono);font-size:.95rem;flex:1 1 auto;min-width:0;text-align:right;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.enth{display:flex;gap:.44rem;padding:0 .13rem .56rem;font-size:.66rem;color:var(--ink-3);border-bottom:.06rem solid var(--line);min-width:0}
+.enth .ym{width:3.3rem;flex:none} .enth .cg{width:3.5rem;flex:none;text-align:right}
+.enth .sp{width:3.4rem;flex:none;text-align:right} .enth .nv{flex:1 1 auto;min-width:0;text-align:right}
 
 .blank{text-align:center;padding:1.88rem .63rem}
 .blank p{color:var(--ink-2);font-size:.88rem;line-height:1.9;margin:0 0 1.13rem}
@@ -176,7 +177,7 @@ main{
   font-size:.81rem;line-height:1.75;color:#8A6763;
 }
 .toast{
-  position:fixed;left:50%;bottom:calc(var(--navh) + env(safe-area-inset-bottom) + 1.25rem);
+  position:fixed;left:50%;bottom:calc(var(--navh) + max(env(safe-area-inset-bottom), .9rem) + 1.25rem);
   transform:translateX(-50%);z-index:40;
   background:rgba(65,76,86,.95);color:#fff;padding:.75rem 1.38rem;border-radius:1.38rem;
   font-size:.88rem;opacity:0;pointer-events:none;
