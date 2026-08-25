@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>每月資產負債表</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F1F2EE">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root{
+    --paper:#F1F2EE;
+    --card:#FAFBF8;
+    --ink:#4A5560;
+    --ink-2:#828E95;
+    --ink-3:#AEB6B8;
+    --rule:#E0E4DC;
+    --rule-soft:#E9ECE5;
+    --accent:#B08A88;
+    --gain:#7A9B84;
+    --loss:#C29A94;
+    --c-cash:#93AAB8;
+    --c-stock:#9BB095;
+    --c-jpy:#CDB795;
+    --c-crypto:#AA9BB0;
+    --c-ins:#BFA098;
+    --mono: ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Roboto Mono","Courier New",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.65;
+    padding:0 0 72px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 18px}
+
+  .masthead{padding:32px 0 20px}
+  .masthead h1{margin:0;font-size:23px;font-weight:600;letter-spacing:.06em}
+  .masthead p{margin:5px 0 0;font-size:13px;color:var(--ink-2);letter-spacing:.04em}
+
+  .summary{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:16px;
+    padding:22px 20px 18px;
+    margin-top:4px;
+  }
+  .summary .eyebrow{font-size:12px;color:var(--ink-2);margin:0 0 6px;letter-spacing:.08em}
+  .netfig{
+    font-family:var(--mono);
+    font-size:34px;font-weight:500;letter-spacing:-.01em;
+    line-height:1.2;margin:0;color:#3F4A54;
+    font-variant-numeric:tabular-nums;
+  }
+  .netfig .unit{font-size:14px;color:var(--ink-2);margin-right:7px;letter-spacing:0}
+  .metarow{display:flex;gap:18px;margin-top:18px;border-top:1px solid var(--rule-soft);padding-top:14px}
+  .metacell{flex:1;min-width:0}
+  .metacell .k{font-size:12px;color:var(--ink-2);display:block;letter-spacing:.04em}
+  .metacell .v{
+    font-family:var(--mono);font-size:17px;font-weight:500;
+    font-variant-numeric:tabular-nums;display:block;margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .up{color:var(--gain)}
+  .down{color:var(--loss)}
+  .none{color:var(--ink-3);font-size:13px !important}
+
+  .monthbar{
+    display:flex;align-items:center;
+    background:var(--card);border:1px solid var(--rule);border-radius:14px;
+    padding:12px 18px;margin-top:12px;
+  }
+  .monthbar span{font-size:13px;color:var(--ink-2)}
+  .monthbar input{
+    font-family:var(--mono);font-size:16px;
+    background:transparent;border:none;color:var(--ink);
+    padding:2px 0;margin-left:auto;
+  }
+  .monthbar input:focus{outline:none}
+
+  .mix{
+    background:var(--card);border:1px solid var(--rule);border-radius:16px;
+    padding:18px 20px 14px;margin-top:12px;
+  }
+  .mix h3{margin:0 0 14px;font-size:13px;font-weight:500;color:var(--ink-2);letter-spacing:.06em}
+  .bar{
+    display:flex;height:13px;border-radius:7px;overflow:hidden;
+    background:var(--rule-soft);
+  }
+  .bar i{display:block;height:100%;transition:width .45s ease}
+  .legend{margin-top:14px}
+  .legend .row{
+    display:flex;align-items:center;gap:9px;
+    padding:6px 0;font-size:14px;
+  }
+  .legend .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .legend .nm{color:var(--ink)}
+  .legend .pc{
+    margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--ink-2);
+    font-variant-numeric:tabular-nums;
+  }
+  .legend .amt{
+    font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;
+    width:88px;text-align:right;
+  }
+  .mixempty{font-size:13px;color:var(--ink-3);padding:6px 0}
+
+  .block{margin-top:30px}
+  .blockhead{
+    display:flex;align-items:baseline;gap:10px;
+    padding-bottom:8px;margin-bottom:2px;border-bottom:1px solid var(--rule);
+  }
+  .blockhead h2{margin:0;font-size:15px;font-weight:600;letter-spacing:.05em}
+  .blockhead .hint{font-size:12px;color:var(--ink-3);margin-left:auto}
+
+  .field{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 0;border-bottom:1px solid var(--rule-soft);
+  }
+  .field label{flex:1;font-size:15px;min-width:0;line-height:1.4}
+  .field label .sub{display:block;font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+  .field input{
+    width:42%;max-width:170px;
+    font-family:var(--mono);font-size:17px;
+    font-variant-numeric:tabular-nums;
+    text-align:right;color:var(--ink);
+    background:#fff;
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:9px 11px;
+    -webkit-appearance:none;appearance:none;
+  }
+  .field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(176,138,136,.14)}
+  .field input::placeholder{color:var(--ink-3)}
+  .field .suffix{font-size:13px;color:var(--ink-2);width:20px;text-align:left;flex:none}
+
+  .derived{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 0;color:var(--ink-2);
+  }
+  .derived span:first-child{font-size:14px}
+  .derived span:last-child{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+
+  .save{
+    width:100%;margin-top:26px;
+    background:var(--ink);color:#FAFBF8;
+    border:none;border-radius:13px;
+    font-family:var(--sans);font-size:16px;font-weight:600;letter-spacing:.08em;
+    padding:16px 0;cursor:pointer;transition:background .2s ease;
+  }
+  .save:active{background:var(--accent)}
+  .save:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .ghost{
+    display:block;margin:16px auto 0;background:none;border:none;
+    color:var(--ink-3);font-size:13px;cursor:pointer;font-family:var(--sans);
+  }
+  .ghost:hover{color:var(--ink-2)}
+
+  .entry{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 0;border-bottom:1px solid var(--rule-soft);
+    cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;
+    width:100%;text-align:left;font-family:var(--sans);color:var(--ink);
+    border-radius:8px;
+  }
+  .entry:active{background:var(--card)}
+  .entry .ym{font-family:var(--mono);font-size:13px;color:var(--ink-2);width:64px;flex:none}
+  .entry .big{
+    font-family:var(--mono);font-size:17px;font-variant-numeric:tabular-nums;
+    margin-left:auto;text-align:right;
+  }
+  .entry .chg{
+    font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;
+    width:76px;flex:none;text-align:right;
+  }
+  .entry .spend{
+    font-family:var(--mono);font-size:12px;color:var(--ink-2);
+    width:72px;flex:none;text-align:right;
+  }
+  .entryhead{
+    display:flex;gap:12px;padding:4px 0 8px;font-size:11px;
+    color:var(--ink-3);border-bottom:1px solid var(--rule-soft);
+  }
+  .entryhead .ym{width:64px;flex:none}
+  .entryhead .chg{width:76px;flex:none;text-align:right}
+  .entryhead .spend{width:72px;flex:none;text-align:right}
+  .entryhead .big{margin-left:auto;text-align:right}
+
+  .empty{padding:22px 2px;color:var(--ink-2);font-size:14px;line-height:1.9}
+
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(10px);
+    background:rgba(74,85,96,.94);color:#FAFBF8;
+    padding:11px 22px;border-radius:22px;font-size:14px;letter-spacing:.04em;
+    opacity:0;pointer-events:none;z-index:50;
+  }
+  .toast.show{animation:lift 2.1s ease-out}
+  @keyframes lift{
+    0%{opacity:0;transform:translateX(-50%) translateY(10px)}
+    14%{opacity:1;transform:translateX(-50%) translateY(0)}
+    80%{opacity:1;transform:translateX(-50%) translateY(0)}
+    100%{opacity:0;transform:translateX(-50%) translateY(0)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .toast.show{animation:soft 2.1s linear}
+    .bar i{transition:none}
+    @keyframes soft{0%,100%{opacity:0}14%,80%{opacity:1}}
+  }
+
+  .warn{
+    margin-top:14px;padding:14px 16px;border-radius:13px;
+    background:#F6EDEC;border:1px solid #E2CFCC;
+    font-size:13.5px;line-height:1.8;color:#7E5C58;
+  }
+  .backup{display:flex;gap:10px;margin-top:14px}
+  .backup button{
+    flex:1;background:none;border:1px solid var(--rule);border-radius:11px;
+    color:var(--ink-2);font-family:var(--sans);font-size:13px;
+    padding:10px 0;cursor:pointer;
+  }
+  .backup button:active{background:var(--card)}
+  .status{text-align:center;font-size:13px;color:var(--ink-3);padding:12px 0 0}
+  .note{font-size:13px;color:var(--ink-2);line-height:1.8;margin:12px 0 0}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">已經記好了</div>
+
+<div class="wrap">
+  <div class="masthead">
+    <h1>資產負債表</h1>
+    <p>一個月填一次就好</p>
+  </div>
+
+  <div class="summary">
+    <p class="eyebrow">淨值</p>
+    <p class="netfig" id="netfig"><span class="unit">NT$</span>0</p>
+    <div class="metarow">
+      <div class="metacell">
+        <span class="k">較上月</span>
+        <span class="v none" id="delta">第一個月</span>
+      </div>
+      <div class="metacell">
+        <span class="k">本月支出</span>
+        <span class="v none" id="spend">下個月才算得出來</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="monthbar">
+    <span>月份</span>
+    <input type="month" id="ym">
+  </div>
+
+  <div class="mix">
+    <h3>錢放在哪</h3>
+    <div class="bar" id="bar"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="warn" id="warn" hidden></div>
+
+  <div class="status" id="status">載入中</div>
+
+  <div class="block">
+    <div class="blockhead"><h2>資產</h2><span class="hint">單位 台幣</span></div>
+    <div class="field">
+      <label for="cash">現金<span class="sub">所有活存加起來</span></label>
+      <input id="cash" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="field">
+      <label for="stock">台股<span class="sub">目前市值</span></label>
+      <input id="stock" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="field">
+      <label for="jpy">日幣<span class="sub">原幣金額</span></label>
+      <input id="jpy" inputmode="decimal" placeholder="0"><span class="suffix">円</span>
+    </div>
+    <div class="field">
+      <label for="rate">日幣匯率<span class="sub">1 円換多少台幣</span></label>
+      <input id="rate" inputmode="decimal" placeholder="0.2000"><span class="suffix"></span>
+    </div>
+    <div class="derived"><span>日幣折台幣</span><span id="jpytwd">0</span></div>
+    <div class="field">
+      <label for="crypto">加密貨幣<span class="sub">折成台幣的市值</span></label>
+      <input id="crypto" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="field">
+      <label for="ins">保單解約金<span class="sub">查保單對照表，一年更新一次就好</span></label>
+      <input id="ins" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="derived"><span>總資產</span><span id="assets">0</span></div>
+  </div>
+
+  <div class="block">
+    <div class="blockhead"><h2>負債</h2></div>
+    <div class="field">
+      <label for="cc">信用卡<span class="sub">這期還沒繳的金額</span></label>
+      <input id="cc" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="field">
+      <label for="loan">學貸<span class="sub">還欠多少</span></label>
+      <input id="loan" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="derived"><span>總負債</span><span id="liab">0</span></div>
+  </div>
+
+  <div class="block">
+    <div class="blockhead"><h2>這個月的金流</h2></div>
+    <div class="field">
+      <label for="income">收入<span class="sub">薪轉加上其他進帳</span></label>
+      <input id="income" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <div class="field">
+      <label for="moved">轉去投資<span class="sub">自己搬去買股票或幣的錢，保費不用填</span></label>
+      <input id="moved" inputmode="decimal" placeholder="0"><span class="suffix"></span>
+    </div>
+    <p class="note">支出的算法是：上月現金 ＋ 這個月收入 − 轉去投資 − 這個月現金</p>
+  </div>
+
+  <button class="save" id="save">儲存這個月</button>
+  <div class="backup">
+    <button id="copyout">複製備份文字</button>
+    <button id="pastein">貼上備份還原</button>
+  </div>
+  <button class="ghost" id="wipe">清除全部紀錄</button>
+
+  <div class="block">
+    <div class="blockhead"><h2>歷月紀錄</h2></div>
+    <div class="entryhead">
+      <span class="ym">月份</span>
+      <span class="chg">增減</span>
+      <span class="spend">支出</span>
+      <span class="big">淨值</span>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+const KEY = 'balancesheet:months';
+const FIELDS = ['cash','stock','jpy','rate','crypto','ins','cc','loan','income','moved'];
+const MIX = [
+  { key:'cash',   name:'現金',     color:'var(--c-cash)'   },
+  { key:'stock',  name:'台股',     color:'var(--c-stock)'  },
+  { key:'jpytwd', name:'日幣',     color:'var(--c-jpy)'    },
+  { key:'crypto', name:'加密貨幣', color:'var(--c-crypto)' },
+  { key:'ins',    name:'保單',     color:'var(--c-ins)'    }
+];
+let months = [];
+
+const $ = id => document.getElementById(id);
+const num = v => { const n = parseFloat(String(v).replace(/[,\s]/g,'')); return isFinite(n) ? n : 0; };
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const signed = n => (n >= 0 ? '+' : '−') + fmt(Math.abs(n));
+
+function currentYM(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+function readForm(){
+  const o = { ym: $('ym').value || currentYM() };
+  FIELDS.forEach(f => o[f] = num($(f).value));
+  if(!o.rate) o.rate = 0.2;
+  return o;
+}
+
+function calc(m, prev){
+  const jpytwd = m.jpy * m.rate;
+  const assets = m.cash + m.stock + jpytwd + m.crypto + m.ins;
+  const liab = m.cc + m.loan;
+  const net = assets - liab;
+  let delta = null, spend = null;
+  if(prev){
+    const pj = prev.jpy * prev.rate;
+    const pnet = prev.cash + prev.stock + pj + prev.crypto + prev.ins - prev.cc - prev.loan;
+    delta = net - pnet;
+    spend = prev.cash + m.income - m.moved - m.cash;
+  }
+  return { jpytwd, assets, liab, net, delta, spend };
+}
+
+function prevOf(ym){
+  const earlier = months.filter(m => m.ym < ym).sort((a,b) => a.ym < b.ym ? 1 : -1);
+  return earlier[0] || null;
+}
+
+function renderMix(m, r){
+  const bar = $('bar'), legend = $('legend');
+  const vals = { cash:m.cash, stock:m.stock, jpytwd:r.jpytwd, crypto:m.crypto, ins:m.ins };
+  const total = r.assets;
+  bar.innerHTML = '';
+  legend.innerHTML = '';
+  if(total <= 0){
+    legend.innerHTML = '<p class="mixempty">填好上面的資產欄位，這裡就會畫出來。</p>';
+    return;
+  }
+  MIX.forEach(seg => {
+    const v = vals[seg.key];
+    if(v <= 0) return;
+    const pct = v / total * 100;
+    const i = document.createElement('i');
+    i.style.width = pct + '%';
+    i.style.background = seg.color;
+    bar.appendChild(i);
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML =
+      '<span class="dot" style="background:' + seg.color + '"></span>' +
+      '<span class="nm">' + seg.name + '</span>' +
+      '<span class="amt">' + fmt(v) + '</span>' +
+      '<span class="pc">' + pct.toFixed(1) + '%</span>';
+    legend.appendChild(row);
+  });
+}
+
+function refresh(){
+  const m = readForm();
+  const r = calc(m, prevOf(m.ym));
+  $('jpytwd').textContent = fmt(r.jpytwd);
+  $('assets').textContent = fmt(r.assets);
+  $('liab').textContent = fmt(r.liab);
+  $('netfig').innerHTML = '<span class="unit">NT$</span>' + fmt(r.net);
+
+  const d = $('delta');
+  if(r.delta === null){ d.textContent = '第一個月'; d.className = 'v none'; }
+  else { d.textContent = signed(r.delta); d.className = 'v ' + (r.delta >= 0 ? 'up' : 'down'); }
+
+  const s = $('spend');
+  if(r.spend === null){ s.textContent = '下個月才算得出來'; s.className = 'v none'; }
+  else { s.textContent = fmt(r.spend); s.className = 'v'; }
+
+  renderMix(m, r);
+}
+
+function renderList(){
+  const el = $('list');
+  if(!months.length){
+    el.innerHTML = '<p class="empty">還沒有紀錄。填好上面的欄位、按儲存，這裡就會出現第一列。<br>下個月再填一次，支出的數字就會自己跑出來。</p>';
+    return;
+  }
+  const sorted = [...months].sort((a,b) => a.ym < b.ym ? 1 : -1);
+  el.innerHTML = '';
+  sorted.forEach(m => {
+    const r = calc(m, prevOf(m.ym));
+    const b = document.createElement('button');
+    b.className = 'entry';
+    const chgCls = r.delta === null ? '' : (r.delta >= 0 ? 'up' : 'down');
+    b.innerHTML =
+      '<span class="ym">' + m.ym.replace('-','/') + '</span>' +
+      '<span class="chg ' + chgCls + '">' + (r.delta === null ? '—' : signed(r.delta)) + '</span>' +
+      '<span class="spend">' + (r.spend === null ? '—' : fmt(r.spend)) + '</span>' +
+      '<span class="big">' + fmt(r.net) + '</span>';
+    b.addEventListener('click', () => load(m.ym));
+    el.appendChild(b);
+  });
+}
+
+function load(ym){
+  const m = months.find(x => x.ym === ym);
+  $('ym').value = ym;
+  if(m) FIELDS.forEach(f => $(f).value = m[f] === 0 ? '' : m[f]);
+  refresh();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function carryForward(){
+  const p = prevOf($('ym').value || currentYM());
+  if(!p) return;
+  ['rate','ins','loan'].forEach(f => { if(!$(f).value) $(f).value = p[f] || ''; });
+}
+
+async function save(){
+  const m = readForm();
+  months = months.filter(x => x.ym !== m.ym);
+  months.push(m);
+  renderList();
+  refresh();
+  try{
+    await store.set(JSON.stringify(months));
+    $('status').textContent = m.ym.replace('-','/') + ' 已存好';
+    const t = $('toast');
+    t.textContent = '已經記好了';
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+  }catch(e){
+    $('status').textContent = '這次沒存進去，先別關掉頁面，等一下再按一次儲存';
+  }
+}
+
+let storageOK = false;
+
+const store = {
+  mode: 'none',
+  async init(){
+    try{
+      localStorage.setItem('balancesheet:probe','1');
+      localStorage.removeItem('balancesheet:probe');
+      this.mode = 'local';
+      storageOK = true;
+      return;
+    }catch(e){}
+    try{
+      if(!window.storage) throw new Error('no storage');
+      await window.storage.set('balancesheet:probe','1');
+      this.mode = 'claude';
+      storageOK = true;
+      return;
+    }catch(e){}
+    this.mode = 'none';
+    storageOK = false;
+  },
+  async get(){
+    if(this.mode === 'local') return localStorage.getItem(KEY);
+    if(this.mode === 'claude'){ const r = await window.storage.get(KEY); return r ? r.value : null; }
+    return null;
+  },
+  async set(v){
+    if(this.mode === 'local'){ localStorage.setItem(KEY, v); return; }
+    if(this.mode === 'claude'){ await window.storage.set(KEY, v); return; }
+    throw new Error('no store');
+  },
+  async del(){
+    if(this.mode === 'local'){ localStorage.removeItem(KEY); return; }
+    if(this.mode === 'claude'){ await window.storage.delete(KEY); return; }
+  }
+};
+
+async function probeStorage(){
+  await store.init();
+  if(!storageOK){
+    const w = $('warn');
+    w.hidden = false;
+    w.innerHTML = '這個畫面沒辦法存檔。填完之前先按下面的「複製備份文字」，換個地方開再按「貼上備份還原」。';
+  }
+}
+
+async function boot(){
+  $('ym').value = currentYM();
+  await probeStorage();
+  try{
+    const raw = await store.get();
+    months = raw ? JSON.parse(raw) : [];
+    $('status').textContent = months.length ? '已記錄 ' + months.length + ' 個月' : '';
+  }catch(e){
+    months = [];
+    $('status').textContent = '';
+  }
+  const existing = months.find(x => x.ym === $('ym').value);
+  if(existing){ load(existing.ym); }
+  else if(months.length){ carryForward(); }
+  else {
+    $('rate').value = 0.2;
+    $('status').textContent = '第一次使用，把上面的欄位填一填，按儲存就完成第一列';
+  }
+  renderList();
+  refresh();
+}
+
+FIELDS.forEach(f => $(f).addEventListener('input', refresh));
+$('ym').addEventListener('change', () => {
+  const existing = months.find(x => x.ym === $('ym').value);
+  if(existing) load(existing.ym); else refresh();
+});
+$('save').addEventListener('click', save);
+$('copyout').addEventListener('click', async () => {
+  const m = readForm();
+  const all = months.filter(x => x.ym !== m.ym).concat([m]);
+  const txt = JSON.stringify(all);
+  try{
+    await navigator.clipboard.writeText(txt);
+    $('status').textContent = '備份文字已複製，貼到記事本或 Claude 對話裡都可以';
+  }catch(e){
+    prompt('長按選取全部、複製起來：', txt);
+  }
+});
+$('pastein').addEventListener('click', async () => {
+  const txt = prompt('把備份文字貼在這裡：');
+  if(!txt) return;
+  try{
+    const data = JSON.parse(txt);
+    if(!Array.isArray(data)) throw new Error('bad');
+    months = data;
+    try{ await store.set(JSON.stringify(months)); }catch(e){}
+    renderList();
+    const cur = months.find(x => x.ym === $('ym').value);
+    if(cur) load(cur.ym); else refresh();
+    $('status').textContent = '已還原 ' + months.length + ' 個月';
+  }catch(e){
+    $('status').textContent = '這段文字看起來不完整，再複製一次試試';
+  }
+});
+$('wipe').addEventListener('click', async () => {
+  if(!confirm('要清除全部紀錄嗎？清掉就找不回來了。')) return;
+  months = [];
+  try{ await store.del(); }catch(e){}
+  FIELDS.forEach(f => $(f).value = '');
+  $('status').textContent = '已經清空了';
+  renderList(); refresh();
+});
+
+boot();
+</script>
+</body>
+</html>
