@@ -90,13 +90,17 @@ main{padding:calc(env(safe-area-inset-top) + 3.9rem) 1.25rem calc(var(--navh) + 
 .steps{display:flex;gap:.38rem;margin-bottom:.63rem}
 .steps i{flex:1;height:.19rem;border-radius:.13rem;background:var(--line);transition:background .3s}
 .steps i.on{background:var(--accent)}
-.counter{font-size:.72rem;color:var(--ink-3);margin:0 0 .88rem;font-family:var(--num)}
+.crow{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin:0 0 .88rem}
+.counter{font-size:.72rem;color:var(--ink-3);margin:0;font-family:var(--num)}
+.dtag{font-size:.69rem;color:var(--ink-3);display:inline-flex;align-items:center;gap:.31rem}
+.dtag::before{content:"";width:.38rem;height:.38rem;border-radius:50%;background:var(--gain)}
 .stepname{font-size:1.25rem;font-weight:600;margin:0 0 .25rem}
 .stepsub{font-size:.81rem;color:var(--ink-2);margin:0 0 1rem;line-height:1.6}
 
 .row{padding:.81rem 0;border-bottom:.06rem solid var(--line)}
 .row:last-of-type{border-bottom:none}
 .row label{display:block;font-size:.97rem;margin-bottom:.13rem;font-weight:500}
+.row label+.ib{margin-top:.5rem}
 .row .sub{display:block;font-size:.72rem;color:var(--ink-3);margin-bottom:.5rem;line-height:1.5}
 .ib{display:flex;align-items:center;gap:.56rem}
 .ib input{flex:1;width:100%;font-family:var(--num);font-size:1.31rem;font-weight:500;
@@ -204,6 +208,7 @@ body.sheet-open{overflow:hidden}
 .sh-b{font-size:.88rem;color:var(--ink-2);line-height:1.75;margin:0 0 1.25rem}
 .sh-acts{display:flex;gap:.63rem;margin-top:.25rem}
 .sh-acts .btn{box-shadow:none}
+.sh-acts .btn.sec{flex:1}
 .btn.danger-fill{background:var(--danger)}
 .sh-ta{width:100%;min-height:7.5rem;font-family:var(--num);font-size:.78rem;color:var(--ink);background:var(--paper);
   border:.09rem solid transparent;border-radius:.88rem;padding:.75rem .88rem;margin:0 0 .75rem;resize:none;line-height:1.6}
@@ -243,7 +248,7 @@ body.kb .tabbar{transform:translateY(110%)}
 .note{font-size:.78rem;color:var(--ink-2);line-height:1.75;margin:0 0 .88rem}
 .toast{position:fixed;left:1rem;right:1rem;max-width:32rem;margin:0 auto;
   bottom:calc(var(--navh) + max(env(safe-area-inset-bottom), .9rem) + .75rem);
-  z-index:70;background:#343C44;color:#F4F5F2;padding:.88rem 1.1rem;border-radius:.75rem;
+  z-index:55;background:#343C44;color:#F4F5F2;padding:.88rem 1.1rem;border-radius:.75rem;
   font-size:.88rem;line-height:1.5;opacity:0;pointer-events:none;box-shadow:0 .25rem 1rem rgba(0,0,0,.16)}
 .toast.show{animation:tl 2.6s cubic-bezier(.2,.8,.2,1)}
 @keyframes tl{0%{opacity:0;transform:translateY(.75rem)}10%,85%{opacity:1;transform:none}100%{opacity:0;transform:none}}
@@ -305,18 +310,18 @@ body.kb .toast{bottom:1rem}
 <section class="view" id="v-edit">
   <div class="restore" id="restore" hidden>第一次用，或是紀錄被清掉了？如果之前有連接雲端備份，到下方「紀錄」頁貼上備份網址，全部紀錄就會拿回來。</div>
   <div class="steps"><i class="on"></i><i></i><i></i><i></i></div>
-  <p class="counter" id="counter">1 / 4</p>
+  <div class="crow"><p class="counter" id="counter">1 / 4</p><span class="dtag" id="dtag" hidden>已自動暫存</span></div>
 
   <div class="card" id="step0">
     <p class="stepname">現金</p>
     <p class="stepsub">四家銀行的活存餘額，照順序查一家填一格</p>
-    <div class="row"><label for="cathay">國泰世華</label><span class="sub">信用卡也是這家</span>
+    <div class="row"><label for="cathay">國泰世華</label>
       <div class="ib"><input id="cathay" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="kgi">凱基</label><span class="sub">薪轉戶、租屋補助入帳</span>
+    <div class="row"><label for="kgi">凱基</label>
       <div class="ib"><input id="kgi" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="fubon">富邦</label><span class="sub">學貸每月 1 號從這裡扣</span>
+    <div class="row"><label for="fubon">富邦</label>
       <div class="ib"><input id="fubon" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="unionb">聯邦</label><span class="sub">高利活存 3%</span>
+    <div class="row"><label for="unionb">聯邦</label>
       <div class="ib"><input id="unionb" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="sum"><span>現金合計</span><b id="s-cash">0</b></div>
   </div>
@@ -334,9 +339,9 @@ body.kb .toast{bottom:1rem}
       <div class="ib"><input id="rate" inputmode="decimal" placeholder="0.2"><em></em></div></div>
     <div class="row"><label for="okx">OKX</label><span class="sub">帳戶總值折台幣</span>
       <div class="ib"><input id="okx" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="lido">Lido 質押</label><span class="sub">Ledger 冷錢包，折台幣</span>
+    <div class="row"><label for="lido">Lido 質押</label><span class="sub">折台幣</span>
       <div class="ib"><input id="lido" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="ins">保單解約金</label><span class="sub">保單年度換日才要改，下次 2026/12/05 改成 102,120</span>
+    <div class="row"><label for="ins">保單解約金</label><span class="sub">看保單的年度末解約金</span>
       <div class="ib"><input id="ins" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="sum"><span>投資合計</span><b id="s-inv">0</b></div>
   </div>
@@ -346,7 +351,7 @@ body.kb .toast{bottom:1rem}
     <p class="stepsub">這兩格每個月都要重查，沿用舊數字會讓支出算錯</p>
     <div class="row"><label for="cc">國泰信用卡</label><span class="sub">目前未繳總額，已出帳加上還沒出帳的都要算</span>
       <div class="ib"><input id="cc" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="loan">學貸餘額</label><span class="sub">查當下還欠多少，每月 1 號扣款後會變</span>
+    <div class="row"><label for="loan">學貸餘額</label><span class="sub">查當下還欠多少</span>
       <div class="ib"><input id="loan" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="sum"><span>總負債</span><b id="s-liab">0</b></div>
   </div>
@@ -354,7 +359,7 @@ body.kb .toast{bottom:1rem}
   <div class="card" id="step3" hidden>
     <p class="stepname">這個月的金流</p>
     <p class="stepsub">用來把薪水和搬動的錢排除掉，剩下的才是真正花掉的</p>
-    <div class="row"><label for="income">收入</label><span class="sub">薪轉加租屋補助，這個月實際入帳的</span>
+    <div class="row"><label for="income">收入</label><span class="sub">這個月實際入帳的錢</span>
       <div class="ib"><input id="income" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="row"><label for="buy">買進</label><span class="sub">現金搬去投資：定期定額、買股、換日幣、買幣</span>
       <div class="ib"><input id="buy" inputmode="decimal" placeholder="0"><em></em></div></div>
@@ -428,6 +433,36 @@ const CARRY=['rate','ins','stkKgi','stkUnion','jpy','okx','lido'];
 const STEPNAMES=['現金','投資部位','負債','金流'];
 
 let months=[], step=0;
+
+/* ---------- 草稿自動暫存：切去銀行 App 再回來不會掉資料 ---------- */
+const DRAFT_KEY='balancesheet:draft';
+let dirty=false;
+function saveDraft(){
+  const tag=document.getElementById('dtag');
+  if(tag)tag.hidden=!dirty;
+  if(!dirty)return;
+  const vals={};
+  F.forEach(f=>{vals[f]=document.getElementById(f).value});
+  try{
+    localStorage.setItem(DRAFT_KEY,JSON.stringify({
+      ym:document.getElementById('ym').value||nowYM(),
+      vals,step,sy:window.scrollY,ts:Date.now()
+    }));
+  }catch(e){}
+}
+function clearDraft(){
+  dirty=false;
+  try{localStorage.removeItem(DRAFT_KEY)}catch(e){}
+  const tag=document.getElementById('dtag');if(tag)tag.hidden=true;
+}
+function loadDraft(){
+  try{
+    const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');
+    if(!d||!d.vals)return null;
+    if(Date.now()-d.ts>7*86400000){localStorage.removeItem(DRAFT_KEY);return null}
+    return d;
+  }catch(e){return null}
+}
 const $=i=>document.getElementById(i);
 const num=v=>{const n=parseFloat(String(v).replace(/[,\s]/g,''));return isFinite(n)?n:0};
 const fmt=n=>Math.round(n).toLocaleString('en-US');
@@ -529,7 +564,7 @@ function checkFlags(m,r,p){
     if(dstock>10000 && m.buy===0) msgs.push('台股市值比上月多了 '+fmt(dstock)+'，但買進填 0。定期定額那幾筆有扣款的話要填進去。');
     if(djpy>0 && m.buy===0) msgs.push('日幣比上月多了 '+fmt(djpy)+' 円，換匯的錢要算在買進。');
     if(dcrypto>10000 && m.buy===0) msgs.push('加密貨幣比上月多了 '+fmt(dcrypto)+'，有買進的話要填。');
-    if(m.income===0) msgs.push('收入填 0，薪轉和租屋補助記得補上，不然支出會被高估。');
+    if(m.income===0) msgs.push('收入填 0，這個月的進帳記得補上，不然支出會被高估。');
   }
   if(msgs.length){f.hidden=false;f.innerHTML=msgs.join('<br><br>')}
   else{f.hidden=true;f.innerHTML=''}
@@ -814,13 +849,18 @@ function drawList(){
       '<span class="cg '+(r.delta===null?'':(r.delta>=0?'up':'down'))+'">'+(r.delta===null?'—':sgn(r.delta))+'</span>'+
       '<span class="sp">'+(r.spend===null?'—':fmt(r.spend))+'</span>'+
       '<span class="nv">'+fmt(r.net)+'</span>';
-    b.onclick=()=>{loadMonth(m.ym);go('edit')};
+    b.onclick=async()=>{
+      if(m.ym===$('ym').value&&dirty){go('edit');return}
+      if(!(await confirmDiscard()))return;
+      loadMonth(m.ym);go('edit');
+    };
     el.appendChild(b);
   });
   drawCharts();
 }
 
 function loadMonth(ym){
+  dirty=false;
   const m=months.find(x=>x.ym===ym);
   $('ym').value=ym;
   if(m)F.forEach(f=>$(f).value=m[f]===0?'':fmtIn(m[f]));
@@ -861,6 +901,7 @@ function setStep(n,dir){
   $('back').hidden=(n===0);
   $('next').textContent=(n===3?'儲存這個月':'下一步');
   window.scrollTo({top:0,behavior:'smooth'});
+  if(dirty)saveDraft();
 }
 function toast(t){const el=$('toast');el.textContent=t;el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
 
@@ -882,6 +923,7 @@ const sheet={
       build(body,v=>this.close(v));
       const el=$('sheet');el.style.transform='';el.scrollTop=0;
       el.classList.add('on');$('sheetBg').classList.add('on');document.body.classList.add('sheet-open');
+      $('toast').classList.remove('show');
       if(!wasOpen){try{history.pushState(Object.assign({},history.state||{},{sheet:1}),'')}catch(e){}}
       setTimeout(()=>{if(!this.resolve)return;const f=body.querySelector('[data-autofocus]');(f||el).focus({preventScroll:true})},320);
     });
@@ -1120,7 +1162,7 @@ async function syncNow(){
       try{await store.set(JSON.stringify(months))}catch(e){}
       drawList();
       const c=months.find(x=>x.ym===$('ym').value);
-      if(c)loadMonth(c.ym);else refresh();
+      if(c&&!dirty)loadMonth(c.ym);else refresh();
     }
     if(!sameData(merged,remote)||ls.get(CLOUD_DIRTY))await cloud.push(months);
     else ls.set(CLOUD_LAST,new Date().toISOString());
@@ -1157,6 +1199,7 @@ async function save(){
   $('restore').hidden=true;
   let localOK=true;
   try{await store.set(JSON.stringify(months))}catch(e){localOK=false}
+  if(localOK)clearDraft();
   setStep(0);go('home');
   const tag=m.ym.replace('-','/');
   buzz(localOK?15:[30,60,30]);
@@ -1170,17 +1213,33 @@ async function save(){
 $('next').onclick=()=>{if(document.activeElement)document.activeElement.blur();step<3?setStep(step+1,'r'):save()};
 $('back').onclick=()=>setStep(step-1,'l');
 $('hnoteGo').onclick=()=>go('edit');
+async function confirmDiscard(){
+  if(!dirty)return true;
+  const ym=$('ym').value||nowYM();
+  const ok=await askConfirm({
+    title:(+ym.split('-')[1])+'月還有沒存的數字',
+    body:'換月份的話，剛剛填的數字會被清掉。要回去存檔，還是放棄這些數字？',
+    ok:'放棄',cancel:'回去繼續填',danger:true
+  });
+  if(ok)clearDraft();
+  return ok;
+}
 $('mbtn').onclick=async()=>{
   const cur=$('ym').value||nowYM();
   const v=await pickMonth(cur);
-  if(v&&v!==cur){buzz(8);$('ym').value=v;$('ym').dispatchEvent(new Event('change'))}
+  if(v&&v!==cur){
+    if(!(await confirmDiscard()))return;
+    buzz(8);$('ym').value=v;$('ym').dispatchEvent(new Event('change'));
+  }
 };
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.v));
-F.forEach(f=>$(f).addEventListener('input',refresh));
+F.forEach(f=>$(f).addEventListener('input',()=>{dirty=true;saveDraft();refresh()}));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveDraft()});
+window.addEventListener('pagehide',saveDraft);
 $('ym').addEventListener('change',()=>{
   const e=months.find(x=>x.ym===$('ym').value);
   if(e)loadMonth(e.ym);
-  else{F.forEach(f=>$(f).value='');carry();setStep(0);refresh()}
+  else{dirty=false;F.forEach(f=>$(f).value='');carry();setStep(0);refresh()}
 });
 $('copyout').onclick=async()=>{
   const m=read(),all=months.filter(x=>x.ym!==m.ym).concat([m]);
@@ -1193,7 +1252,7 @@ $('pastein').onclick=async()=>{
     const d=JSON.parse(t);if(!Array.isArray(d))throw 0;
     months=d;try{await store.set(JSON.stringify(months))}catch(e){}
     drawList();const c=months.find(x=>x.ym===$('ym').value);
-    if(c)loadMonth(c.ym);else refresh();
+    if(c&&!dirty)loadMonth(c.ym);else refresh();
     toast('已還原 '+months.length+' 個月');
   }catch(e){toast('這段文字看起來不完整')}
 };
@@ -1212,7 +1271,7 @@ $('cl-connect').onclick=async()=>{
     else ls.set(CLOUD_LAST,new Date().toISOString());
     drawList();
     const c=months.find(x=>x.ym===$('ym').value);
-    if(c)loadMonth(c.ym);else{carry();refresh()}
+    if(c&&!dirty)loadMonth(c.ym);else{carry();refresh()}
     $('restore').hidden=true;
     cloudUI('ok');
     toast(remote.length&&!before?'已拿回 '+remote.length+' 個月的紀錄':'連接好了，之後每次儲存都會同步');
@@ -1243,6 +1302,21 @@ $('cl-off-btn').onclick=async()=>{
   if(!months.length){
     go('edit');
     if(!cloud.url())$('restore').hidden=false;
+  }
+  const dr=loadDraft();
+  if(dr){
+    $('ym').value=dr.ym;
+    F.forEach(f=>{
+      const v=dr.vals[f];if(v===undefined)return;
+      $(f).value=(v!==''&&/[0-9]/.test(v))?fmtIn(num(v)):v;
+    });
+    dirty=true;
+    $('restore').hidden=true;
+    go('edit');
+    setStep(dr.step||0);
+    refresh();
+    setTimeout(()=>window.scrollTo(0,dr.sy||0),80);
+    toast('已接回剛剛填到一半的數字');
   }
   if(cloud.url())syncNow();
 })();
