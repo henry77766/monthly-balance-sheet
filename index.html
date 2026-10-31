@@ -15,7 +15,7 @@
   --line:#E7EAE3; --accent:#8FA8B8;
   --gain:#6E9179; --loss:#C08E88;
   --s-in:#4279B5; --s-out:#C66F4E;
-  --c1:#93AAB8; --c2:#9BB095; --c3:#CDB795; --c4:#AA9BB0; --c5:#BFA098;
+  --c1:#93AAB8; --c2:#9BB095; --c3:#CDB795; --c4:#AA9BB0; --c5:#BFA098; --c6:#B4AEA2;
   --num:system-ui,-apple-system,"Roboto","Segoe UI","Noto Sans TC","PingFang TC",sans-serif;
   --danger:#A9493F;
   --sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
@@ -247,6 +247,7 @@ body.sheet-open{overflow:hidden}
 /* ---------- 鍵盤打開時收起底部導覽 ---------- */
 .tabbar{transition:transform .22s ease}
 body.kb .tabbar{transform:translateY(110%)}
+.ver{font-size:.69rem;color:var(--ink-3);text-align:center;margin:.5rem 0 0;font-variant-numeric:tabular-nums}
 .note{font-size:.78rem;color:var(--ink-2);line-height:1.75;margin:0 0 .88rem}
 .toast{position:fixed;left:1rem;right:1rem;max-width:32rem;margin:0 auto;
   bottom:calc(var(--navh) + max(env(safe-area-inset-bottom), .9rem) + .75rem);
@@ -303,6 +304,7 @@ body.kb .toast{bottom:1rem}
     <div class="work">
       <div class="l"><span>現金合計</span><b id="o-cash">0</b></div>
       <div class="l"><span>投資合計</span><b id="o-inv">0</b></div>
+      <div class="l"><span>借給別人</span><b id="o-lent">0</b></div>
       <div class="l"><span>總資產</span><b id="o-ta">0</b></div>
       <div class="l"><span>總負債</span><b id="o-tl">0</b></div>
     </div>
@@ -350,13 +352,15 @@ body.kb .toast{bottom:1rem}
   </div>
 
   <div class="card" id="step2" hidden>
-    <p class="stepname">負債</p>
-    <p class="stepsub">這兩格每個月都要重查，沿用舊數字會讓支出算錯</p>
+    <p class="stepname">負債與借出</p>
+    <p class="stepsub">信用卡和學貸每個月都要重查，沿用舊數字會讓支出算錯</p>
     <div class="row"><label for="cc">國泰信用卡</label><span class="sub">目前未繳總額，已出帳加上還沒出帳的都要算</span>
       <div class="ib"><input id="cc" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="row"><label for="loan">學貸餘額</label><span class="sub">查當下還欠多少</span>
       <div class="ib"><input id="loan" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="sum"><span>總負債</span><b id="s-liab">0</b></div>
+    <div class="row" style="margin-top:.63rem"><label for="lent">借給別人的錢</label><span class="sub">還沒拿回來的總額，有借出或有人還錢時才要改</span>
+      <div class="ib"><input id="lent" inputmode="decimal" placeholder="0"><em></em></div></div>
   </div>
 
   <div class="card" id="step3" hidden>
@@ -375,6 +379,7 @@ body.kb .toast{bottom:1rem}
       <div class="l"><span>買進</span><b id="w-buy">0</b></div>
       <div class="l"><span>賣出</span><b id="w-sell">0</b></div>
       <div class="l"><span>負債變化</span><b id="w-dl">0</b></div>
+      <div class="l"><span>借出變化</span><b id="w-dlent">0</b></div>
       <div class="l tot"><span>這個月支出</span><b id="w-sp">—</b></div>
     </div>
     <div class="flag" id="flag" hidden></div>
@@ -411,6 +416,7 @@ body.kb .toast{bottom:1rem}
     <p class="note">沒有連接雲端時的替代做法。複製下來的文字貼到記事本保存，需要時再貼回來。</p>
     <div class="mini"><button id="copyout">複製備份文字</button><button id="pastein">貼上備份還原</button></div>
   </div>
+  <p class="ver" id="ver"></p>
 </section>
 
 </main>
@@ -431,9 +437,11 @@ const CASH=['cathay','kgi','fubon','unionb'];
 const INV=['stkKgi','stkUnion','jpy','rate','okx','lido','ins'];
 const LIAB=['cc','loan'];
 const FLOW=['income','buy','sell'];
-const F=[...CASH,...INV,...LIAB,...FLOW];
-const CARRY=['rate','ins','stkKgi','stkUnion','jpy','okx','lido'];
-const STEPNAMES=['現金','投資部位','負債','金流'];
+const LENT=['lent'];
+const F=[...CASH,...INV,...LIAB,...LENT,...FLOW];
+const APP_VERSION='2026.11.01';
+const CARRY=['rate','ins','stkKgi','stkUnion','jpy','okx','lido','lent'];
+const STEPNAMES=['現金','投資部位','負債與借出','金流'];
 
 let months=[], step=0;
 
@@ -508,7 +516,7 @@ function importLegacy(){
   return added;
 }
 /* 每一格都是 0 或空白的月份，視為沒有紀錄；匯率不算，因為它有預設值 */
-const BLANK_KEYS=['cathay','kgi','fubon','unionb','stkKgi','stkUnion','jpy','okx','lido','ins','cc','loan','income','buy','sell'];
+const BLANK_KEYS=['cathay','kgi','fubon','unionb','stkKgi','stkUnion','jpy','okx','lido','ins','cc','loan','lent','income','buy','sell'];
 const isBlank=m=>BLANK_KEYS.every(k=>!Number(m[k]));
 function dropBlanks(){
   const b=months.filter(isBlank);
@@ -557,29 +565,32 @@ function calc(m,p){
   const jpytwd=m.jpy*m.rate;
   const crypto=m.okx+m.lido;
   const inv=stock+jpytwd+crypto+m.ins;
-  const assets=cash+inv;
+  const lent=Number(m.lent)||0;
+  const assets=cash+inv+lent;
   const liab=m.cc+m.loan;
   const net=assets-liab;
-  let delta=null,spend=null,dliab=null,pcash=null;
+  let delta=null,spend=null,dliab=null,dlent=null,pcash=null;
   if(p){
     const pcash0=p.cathay+p.kgi+p.fubon+p.unionb;
     const pliab=p.cc+p.loan;
-    const pnet=pcash0+p.stkKgi+p.stkUnion+p.jpy*p.rate+p.okx+p.lido+p.ins-pliab;
+    const plent=Number(p.lent)||0;
+    const pnet=pcash0+p.stkKgi+p.stkUnion+p.jpy*p.rate+p.okx+p.lido+p.ins+plent-pliab;
     pcash=pcash0;
     dliab=liab-pliab;
+    dlent=lent-plent;
     delta=net-pnet;
-    spend=(pcash0-cash)+m.income-m.buy+m.sell+dliab;
+    spend=(pcash0-cash)+m.income-m.buy+m.sell+dliab-dlent;
   }
-  return {cash,stock,jpytwd,crypto,inv,assets,liab,net,delta,spend,dliab,pcash};
+  return {cash,stock,jpytwd,crypto,inv,lent,assets,liab,net,delta,spend,dliab,dlent,pcash};
 }
 
 const MIX=[{k:'cash',n:'現金',c:'var(--c1)'},{k:'stock',n:'台股',c:'var(--c2)'},
   {k:'jpytwd',n:'日幣',c:'var(--c3)'},{k:'crypto',n:'加密貨幣',c:'var(--c4)'},
-  {k:'ins',n:'保單',c:'var(--c5)'}];
+  {k:'ins',n:'保單',c:'var(--c5)'},{k:'lent',n:'借出',c:'var(--c6)'}];
 
 function drawMix(m,r){
   const bar=$('bar'),leg=$('leg');
-  const v={cash:r.cash,stock:r.stock,jpytwd:r.jpytwd,crypto:r.crypto,ins:m.ins};
+  const v={cash:r.cash,stock:r.stock,jpytwd:r.jpytwd,crypto:r.crypto,ins:m.ins,lent:r.lent};
   bar.innerHTML='';leg.innerHTML='';
   if(r.assets<=0){leg.innerHTML='<p style="font-size:.81rem;color:var(--ink-3);margin:.38rem 0 0">還沒有資料。到「填寫」把數字補上就會畫出來。</p>';return}
   MIX.forEach(s=>{
@@ -610,7 +621,8 @@ function checkFlags(m,r,p){
     if(dstock>10000 && m.buy===0) msgs.push('台股市值比上月多了 '+fmt(dstock)+'，但買進填 0。定期定額那幾筆有扣款的話要填進去。');
     if(djpy>0 && m.buy===0) msgs.push('日幣比上月多了 '+fmt(djpy)+' 円，換匯的錢要算在買進。');
     if(dcrypto>10000 && m.buy===0) msgs.push('加密貨幣比上月多了 '+fmt(dcrypto)+'，有買進的話要填。');
-    if(m.income===0) msgs.push('收入填 0，這個月的進帳記得補上，不然支出會被高估。');
+    if(m.income===0) msgs.push('收入填 0，這個月的進帳記得補上，不然支出會被低估。');
+    if(r.spend!==null&&r.spend<0) msgs.push('支出算出來是負數，通常是漏填了收入或賣出，或是有人還錢了，但「借給別人的錢」還沒減少。');
   }
   if(msgs.length){f.hidden=false;f.innerHTML=msgs.join('<br><br>')}
   else{f.hidden=true;f.innerHTML=''}
@@ -640,6 +652,7 @@ function refresh(){
   $('o-inv').textContent=fmt(orr.inv);
   $('o-ta').textContent=fmt(orr.assets);
   $('o-tl').textContent=fmt(orr.liab);
+  $('o-lent').textContent=fmt(orr.lent);
   $('s-cash').textContent=fmt(r.cash);
   $('s-inv').textContent=fmt(r.inv);
   $('s-liab').textContent=fmt(r.liab);
@@ -657,6 +670,7 @@ function refresh(){
   $('w-buy').textContent=fmt(m.buy);
   $('w-sell').textContent=fmt(m.sell);
   $('w-dl').textContent=r.dliab===null?'—':sgn(r.dliab);
+  $('w-dlent').textContent=r.dlent===null?'—':sgn(r.dlent);
   $('w-sp').textContent=r.spend===null?'—':fmt(r.spend);
 
   drawMix(om,orr);
@@ -910,7 +924,7 @@ function loadMonth(ym){
   dirty=false;
   const m=months.find(x=>x.ym===ym);
   $('ym').value=ym;
-  if(m)F.forEach(f=>$(f).value=m[f]===0?'':fmtIn(m[f]));
+  if(m)F.forEach(f=>{const v=m[f];$(f).value=(v===undefined||v===null||v===''||Number(v)===0)?'':fmtIn(v)});
   setStep(0);refresh();
 }
 function carry(){
@@ -1379,6 +1393,7 @@ $('cl-off-btn').onclick=async()=>{
 };
 
 (async function boot(){
+  $('ver').textContent='版本 '+APP_VERSION;
   try{history.replaceState({v:'home'},'')}catch(e){}
   $('ym').value=nowYM();
   await store.init();
