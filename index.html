@@ -374,7 +374,6 @@ body.kb .toast{bottom:1rem}
       <div class="l"><span>買進</span><b id="w-buy">0</b></div>
       <div class="l"><span>賣出</span><b id="w-sell">0</b></div>
       <div class="l"><span>負債變化</span><b id="w-dl">0</b></div>
-      <div class="l"><span>涵蓋天數</span><b id="w-days">—</b></div>
       <div class="l tot"><span>這個月支出</span><b id="w-sp">—</b></div>
     </div>
     <div class="flag" id="flag" hidden></div>
@@ -484,6 +483,16 @@ const GONE_KEY='balancesheet:gone';
 function goneMap(){try{return JSON.parse(localStorage.getItem(GONE_KEY)||'{}')}catch(e){return {}}}
 function markGone(ym){const g=goneMap();g[ym]=new Date().toISOString();try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}
 function unGone(ym){const g=goneMap();if(g[ym]){delete g[ym];try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}}
+/* 每一格都是 0 或空白的月份，視為沒有紀錄；匯率不算，因為它有預設值 */
+const BLANK_KEYS=['cathay','kgi','fubon','unionb','stkKgi','stkUnion','jpy','okx','lido','ins','cc','loan','income','buy','sell'];
+const isBlank=m=>BLANK_KEYS.every(k=>!Number(m[k]));
+function dropBlanks(){
+  const b=months.filter(isBlank);
+  if(!b.length)return false;
+  b.forEach(x=>markGone(x.ym));
+  months=months.filter(x=>!isBlank(x));
+  return true;
+}
 
 const store={
   mode:'none',
@@ -560,28 +569,16 @@ function drawMix(m,r){
   });
 }
 
-/* 資料日期：每筆紀錄代表的是那個月底的餘額。
-   在當月或下個月 10 號以前存的，用實際存檔日；
-   太晚補填或修改舊月份，一律當成那個月最後一天。 */
+/* 存檔日期：當月或下個月 10 號以前存的用實際日期，太晚補填的當成那個月最後一天 */
 const nextYMOf=ym=>{let [y,m]=ym.split('-').map(Number);m++;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')};
 const lastDayOf=ym=>{const [y,m]=ym.split('-').map(Number);return ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')};
 function snapDate(ym,d){
   if(d&&d>=ym+'-01'&&d<=nextYMOf(ym)+'-10')return d;
   return lastDayOf(ym);
 }
-function spanDays(m,p){
-  if(!p)return null;
-  const a=snapDate(p.ym,p.savedAt),b=snapDate(m.ym,m.savedAt||todayLocal());
-  const t=x=>{const [y,mo,d]=x.split('-').map(Number);return Date.UTC(y,mo-1,d)};
-  const d=Math.round((t(b)-t(a))/86400000);
-  return (isFinite(d)&&d>0)?d:null;
-}
 
 function checkFlags(m,r,p){
   const f=$('flag');const msgs=[];
-  const days=spanDays(m,p);
-  if(days!==null&&days>35) msgs.push('這次距離上次填寫 '+days+' 天，比一般月份長，支出看起來會偏高，不是你真的花比較多。');
-  if(days!==null&&days<25) msgs.push('這次距離上次填寫只有 '+days+' 天，支出看起來會偏低，下個月會補回來。');
   if(p){
     const dstock=r.stock-(p.stkKgi+p.stkUnion);
     const dcrypto=r.crypto-(p.okx+p.lido);
@@ -635,8 +632,6 @@ function refresh(){
   $('w-sell').textContent=fmt(m.sell);
   $('w-dl').textContent=r.dliab===null?'—':sgn(r.dliab);
   $('w-sp').textContent=r.spend===null?'—':fmt(r.spend);
-  const dd=spanDays(m,p);
-  $('w-days').textContent=dd===null?'—':dd+' 天';
 
   drawMix(om,orr);
   checkFlags(m,r,p);
@@ -1162,7 +1157,7 @@ function mergeMonths(local,remote){
     const r=map[m.ym];
     if(!r||(m.updatedAt||'')>=(r.updatedAt||''))map[m.ym]=m;
   });
-  return Object.values(map);
+  return Object.values(map).filter(x=>!isBlank(x));
 }
 function sameData(a,b){
   const k=x=>JSON.stringify([...x].sort((p,q)=>p.ym<q.ym?-1:1));
@@ -1212,6 +1207,19 @@ async function pushAfterSave(){
 
 async function save(){
   const m=read();
+  if(isBlank(m)){
+    const M=(+m.ym.split('-')[1])+'月';
+    if(!months.some(x=>x.ym===m.ym)){toast('沒有填任何數字，所以沒有存');return}
+    const ok=await askConfirm({title:M+'的數字都是空的',body:'存下去會把'+M+'的紀錄清掉，變回沒有填過的樣子。',ok:'清掉',danger:true});
+    if(!ok)return;
+    months=months.filter(x=>x.ym!==m.ym);markGone(m.ym);
+    try{await store.set(JSON.stringify(months))}catch(e){}
+    clearDraft();loadMonth(m.ym);carry();drawList();refresh();
+    setStep(0);go('home');buzz(15);
+    toast(M+'的紀錄已清掉');
+    if(cloud.url())pushAfterSave();
+    return;
+  }
   if(m.ym>nowYM()){
     const ok=await askConfirm({
       title:'存到'+(+m.ym.split('-')[1])+'月？',
@@ -1349,6 +1357,7 @@ $('cl-off-btn').onclick=async()=>{
   $('ym').value=nowYM();
   await store.init();
   try{const raw=await store.get();months=raw?JSON.parse(raw):[]}catch(e){months=[]}
+  if(dropBlanks()){try{await store.set(JSON.stringify(months))}catch(e){}if(cloud.url())ls.set(CLOUD_DIRTY,'1')}
   $('ym').value=defaultYM();
   const cur=months.find(x=>x.ym===$('ym').value);
   if(cur)loadMonth(cur.ym);else{carry();setStep(0)}
