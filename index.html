@@ -317,6 +317,7 @@ body.kb .toast{bottom:1rem}
   <div class="card" id="step0">
     <p class="stepname">現金</p>
     <p class="stepsub">四家銀行的活存餘額，照順序查一家填一格</p>
+    <div class="restore" id="legacyNote" hidden>這個月是從舊版找回來的。舊版的現金、台股、加密貨幣只記總數，所以各自放在第一格，總數是對的。</div>
     <div class="row"><label for="cathay">國泰世華</label>
       <div class="ib"><input id="cathay" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="row"><label for="kgi">凱基</label>
@@ -483,6 +484,29 @@ const GONE_KEY='balancesheet:gone';
 function goneMap(){try{return JSON.parse(localStorage.getItem(GONE_KEY)||'{}')}catch(e){return {}}}
 function markGone(ym){const g=goneMap();g[ym]=new Date().toISOString();try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}
 function unGone(ym){const g=goneMap();if(g[ym]){delete g[ym];try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}}
+
+/* 從舊版找回資料：舊版存在 balancesheet:months，欄位是總數 */
+const LEGACY_KEY='balancesheet:months';
+function importLegacy(){
+  let raw=null,old=null;
+  try{raw=localStorage.getItem(LEGACY_KEY);old=JSON.parse(raw||'null')}catch(e){old=null}
+  if(!Array.isArray(old)||!old.length)return [];
+  const have=new Set(months.map(m=>m.ym)),gone=goneMap(),added=[];
+  old.forEach(o=>{
+    if(!o||!/^\d{4}-\d{2}$/.test(o.ym||'')||have.has(o.ym)||gone[o.ym])return;
+    const n=k=>Number(o[k])||0,mv=n('moved');
+    const r={ym:o.ym,cathay:n('cash'),kgi:0,fubon:0,unionb:0,
+      stkKgi:n('stock'),stkUnion:0,jpy:n('jpy'),rate:n('rate')||0.2,
+      okx:n('crypto'),lido:0,ins:n('ins'),cc:n('cc'),loan:n('loan'),
+      income:n('income'),buy:Math.max(mv,0),sell:Math.max(-mv,0),
+      legacy:true,updatedAt:new Date().toISOString()};
+    if(o.savedAt)r.savedAt=o.savedAt;
+    if(isBlank(r))return;
+    months.push(r);added.push(o.ym);
+  });
+  try{localStorage.setItem(LEGACY_KEY+'.backup',raw);localStorage.removeItem(LEGACY_KEY)}catch(e){}
+  return added;
+}
 /* 每一格都是 0 或空白的月份，視為沒有紀錄；匯率不算，因為它有預設值 */
 const BLANK_KEYS=['cathay','kgi','fubon','unionb','stkKgi','stkUnion','jpy','okx','lido','ins','cc','loan','income','buy','sell'];
 const isBlank=m=>BLANK_KEYS.every(k=>!Number(m[k]));
@@ -602,6 +626,8 @@ function refresh(){
   const m=read(),p=prevOf(m.ym),r=calc(m,p);
   $('mtxt').textContent=m.ym.replace('-','/');
   $('moveBtn').hidden=!months.some(x=>x.ym===m.ym);
+  const lr=months.find(x=>x.ym===m.ym);
+  $('legacyNote').hidden=!(lr&&lr.legacy);
   const ov=overviewRec(m.ym);
   const om=ov||m,orr=ov?calc(ov,prevOf(ov.ym)):r;
   const mo=ym=>(+ym.split('-')[1])+'月';
@@ -1358,6 +1384,12 @@ $('cl-off-btn').onclick=async()=>{
   await store.init();
   try{const raw=await store.get();months=raw?JSON.parse(raw):[]}catch(e){months=[]}
   if(dropBlanks()){try{await store.set(JSON.stringify(months))}catch(e){}if(cloud.url())ls.set(CLOUD_DIRTY,'1')}
+  const found=importLegacy();
+  if(found.length){
+    try{await store.set(JSON.stringify(months))}catch(e){}
+    if(cloud.url())ls.set(CLOUD_DIRTY,'1');
+    setTimeout(()=>toast('從舊版找回了 '+found.map(x=>(+x.split('-')[1])+'月').join('、')+' 的紀錄'),900);
+  }
   $('ym').value=defaultYM();
   const cur=months.find(x=>x.ym===$('ym').value);
   if(cur)loadMonth(cur.ym);else{carry();setStep(0)}
