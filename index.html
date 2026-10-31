@@ -92,6 +92,8 @@ main{padding:calc(env(safe-area-inset-top) + 3.9rem) 1.25rem calc(var(--navh) + 
 .steps i.on{background:var(--accent)}
 .crow{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin:0 0 .88rem}
 .counter{font-size:.72rem;color:var(--ink-3);margin:0;font-family:var(--num)}
+.counter .cm{color:var(--ink);font-weight:600;font-size:.81rem}
+.movebtn{display:block;margin:.88rem auto 0;text-align:center}
 .dtag{font-size:.69rem;color:var(--ink-3);display:inline-flex;align-items:center;gap:.31rem}
 .dtag::before{content:"";width:.38rem;height:.38rem;border-radius:50%;background:var(--gain)}
 .stepname{font-size:1.25rem;font-weight:600;margin:0 0 .25rem}
@@ -382,6 +384,7 @@ body.kb .toast{bottom:1rem}
     <button class="btn sec" id="back" hidden>上一步</button>
     <button class="btn" id="next">下一步</button>
   </div>
+  <button class="tview movebtn" id="moveBtn" hidden>存錯月份了？移到其他月份</button>
 </section>
 
 <section class="view" id="v-log">
@@ -468,6 +471,19 @@ const num=v=>{const n=parseFloat(String(v).replace(/[,\s]/g,''));return isFinite
 const fmt=n=>Math.round(n).toLocaleString('en-US');
 const sgn=n=>(n>=0?'+':'−')+fmt(Math.abs(n));
 const nowYM=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const todayLocal=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const prevYMOf=ym=>{let [y,m]=ym.split('-').map(Number);m--;if(m<1){m=12;y--}return y+'-'+String(m).padStart(2,'0')};
+/* 每月 1 到 10 號打開時，如果上個月還沒存，預設選上個月 */
+function defaultYM(){
+  const now=nowYM(),pv=prevYMOf(now);
+  if(new Date().getDate()<=10&&months.length&&!months.some(x=>x.ym===pv))return pv;
+  return now;
+}
+/* 被移走的月份，避免雲端同步時又被合併回來 */
+const GONE_KEY='balancesheet:gone';
+function goneMap(){try{return JSON.parse(localStorage.getItem(GONE_KEY)||'{}')}catch(e){return {}}}
+function markGone(ym){const g=goneMap();g[ym]=new Date().toISOString();try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}
+function unGone(ym){const g=goneMap();if(g[ym]){delete g[ym];try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}}
 
 const store={
   mode:'none',
@@ -544,11 +560,20 @@ function drawMix(m,r){
   });
 }
 
+/* 資料日期：每筆紀錄代表的是那個月底的餘額。
+   在當月或下個月 10 號以前存的，用實際存檔日；
+   太晚補填或修改舊月份，一律當成那個月最後一天。 */
+const nextYMOf=ym=>{let [y,m]=ym.split('-').map(Number);m++;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')};
+const lastDayOf=ym=>{const [y,m]=ym.split('-').map(Number);return ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')};
+function snapDate(ym,d){
+  if(d&&d>=ym+'-01'&&d<=nextYMOf(ym)+'-10')return d;
+  return lastDayOf(ym);
+}
 function spanDays(m,p){
-  if(!p||!p.savedAt)return null;
-  const end=m.savedAt?new Date(m.savedAt):new Date();
-  const start=new Date(p.savedAt);
-  const d=Math.round((end-start)/86400000);
+  if(!p)return null;
+  const a=snapDate(p.ym,p.savedAt),b=snapDate(m.ym,m.savedAt||todayLocal());
+  const t=x=>{const [y,mo,d]=x.split('-').map(Number);return Date.UTC(y,mo-1,d)};
+  const d=Math.round((t(b)-t(a))/86400000);
   return (isFinite(d)&&d>0)?d:null;
 }
 
@@ -579,6 +604,7 @@ function overviewRec(ym){
 function refresh(){
   const m=read(),p=prevOf(m.ym),r=calc(m,p);
   $('mtxt').textContent=m.ym.replace('-','/');
+  $('moveBtn').hidden=!months.some(x=>x.ym===m.ym);
   const ov=overviewRec(m.ym);
   const om=ov||m,orr=ov?calc(ov,prevOf(ov.ym)):r;
   const mo=ym=>(+ym.split('-')[1])+'月';
@@ -897,9 +923,11 @@ function setStep(n,dir){
   [0,1,2,3].forEach(i=>{const c=$('step'+i);c.hidden=(i!==n);c.classList.remove('in-r','in-l')});
   if(dir){const c=$('step'+n);void c.offsetWidth;c.classList.add('in-'+dir)}
   document.querySelectorAll('.steps i').forEach((el,i)=>el.classList.toggle('on',i<=n));
-  $('counter').textContent=(n+1)+' / 4 ・ '+STEPNAMES[n];
+  const M=(+($('ym').value||nowYM()).split('-')[1])+'月';
+  const mb=document.createElement('b');mb.className='cm';mb.textContent=M;
+  $('counter').replaceChildren(mb,' ・ '+(n+1)+' / 4 ・ '+STEPNAMES[n]);
   $('back').hidden=(n===0);
-  $('next').textContent=(n===3?'儲存這個月':'下一步');
+  $('next').textContent=(n===3?'儲存到 '+M:'下一步');
   window.scrollTo({top:0,behavior:'smooth'});
   if(dirty)saveDraft();
 }
@@ -999,12 +1027,12 @@ function showCopy(text){
     setTimeout(()=>{try{ta.select()}catch(e){}},340);
   });
 }
-function pickMonth(cur){
+function pickMonth(cur,title){
   let y=+cur.slice(0,4);
   const has=new Set(months.map(m=>m.ym));
   const now=nowYM();
   return sheet.open((b,done)=>{
-    b.append(grabEl(),mk('p','sh-t','選擇月份'));
+    b.append(grabEl(),mk('p','sh-t',title||'選擇月份'));
     const yr=mk('div','yr');
     const pv=mk('button');pv.setAttribute('aria-label','上一年');pv.appendChild(icon('M15 6l-6 6 6 6'));
     const lab=mk('b');
@@ -1128,8 +1156,8 @@ const cloud={
   }
 };
 function mergeMonths(local,remote){
-  const map={};
-  remote.forEach(m=>{map[m.ym]=m});
+  const map={},gone=goneMap();
+  remote.forEach(m=>{if(gone[m.ym]&&gone[m.ym]>=(m.updatedAt||''))return;map[m.ym]=m});
   local.forEach(m=>{
     const r=map[m.ym];
     if(!r||(m.updatedAt||'')>=(r.updatedAt||''))map[m.ym]=m;
@@ -1146,7 +1174,8 @@ function cloudUI(state){
   if(!u)return;
   const dot=$('cl-dot'),msg=$('cl-msg'),tm=$('cl-time');
   const last=ls.get(CLOUD_LAST);
-  tm.textContent=last?('上次同步 '+last.slice(5,10).replace('-','/')+' '+new Date(last).toTimeString().slice(0,5)):'';
+  const ld=last?new Date(last):null;
+  tm.textContent=ld?('上次同步 '+(ld.getMonth()+1)+'/'+ld.getDate()+' '+ld.toTimeString().slice(0,5)):'';
   if(state==='busy'){dot.className='dot';msg.textContent='同步中'}
   else if(state==='bad'||ls.get(CLOUD_DIRTY)){dot.className='dot bad';msg.textContent='上次沒同步成功，會再試'}
   else{dot.className='dot ok';msg.textContent='已連接 Google 試算表'}
@@ -1192,9 +1221,10 @@ async function save(){
     if(!ok)return;
   }
   const exist=months.find(x=>x.ym===m.ym);
-  m.savedAt=(exist&&exist.savedAt&&$('ym').value!==nowYM())?exist.savedAt:new Date().toISOString().slice(0,10);
+  m.savedAt=snapDate(m.ym,(exist&&exist.savedAt&&$('ym').value!==nowYM())?exist.savedAt:todayLocal());
   m.updatedAt=new Date().toISOString();
   months=months.filter(x=>x.ym!==m.ym);months.push(m);
+  unGone(m.ym);
   drawList();refresh();
   $('restore').hidden=true;
   let localOK=true;
@@ -1212,6 +1242,31 @@ async function save(){
 
 $('next').onclick=()=>{if(document.activeElement)document.activeElement.blur();step<3?setStep(step+1,'r'):save()};
 $('back').onclick=()=>setStep(step-1,'l');
+$('moveBtn').onclick=async()=>{
+  const from=$('ym').value;
+  const rec=months.find(x=>x.ym===from);if(!rec)return;
+  if(!(await confirmDiscard()))return;
+  const to=await pickMonth(from,'這筆要移到哪個月份');
+  if(!to||to===from)return;
+  const M=ym=>(+ym.split('-')[1])+'月';
+  if(months.some(x=>x.ym===to)){
+    const ok=await askConfirm({title:M(to)+'已經有紀錄',body:'移過去會蓋掉'+M(to)+'原本的數字，'+M(from)+'會變成沒有紀錄。',ok:'蓋掉',danger:true});
+    if(!ok)return;
+  }else if(to>nowYM()){
+    const ok=await askConfirm({title:'移到'+M(to)+'？',body:to.replace('-','/')+' 比現在的月份還晚，確定要移過去嗎？',ok:'確定'});
+    if(!ok)return;
+  }
+  const moved=Object.assign({},rec,{ym:to,updatedAt:new Date().toISOString()});
+  months=months.filter(x=>x.ym!==from&&x.ym!==to);months.push(moved);
+  markGone(from);unGone(to);
+  try{await store.set(JSON.stringify(months))}catch(e){}
+  clearDraft();
+  $('ym').value=to;loadMonth(to);drawList();refresh();
+  buzz(15);
+  const tag=to.replace('-','/');
+  toast('已移到 '+tag);
+  if(cloud.url()){const ok=await pushAfterSave();if(!ok)toast('已移到 '+tag+'，雲端這次沒同步成功，下次會再試')}
+};
 $('hnoteGo').onclick=()=>go('edit');
 async function confirmDiscard(){
   if(!dirty)return true;
@@ -1294,8 +1349,9 @@ $('cl-off-btn').onclick=async()=>{
   $('ym').value=nowYM();
   await store.init();
   try{const raw=await store.get();months=raw?JSON.parse(raw):[]}catch(e){months=[]}
-  const cur=months.find(x=>x.ym===nowYM());
-  if(cur)loadMonth(cur.ym);else carry();
+  $('ym').value=defaultYM();
+  const cur=months.find(x=>x.ym===$('ym').value);
+  if(cur)loadMonth(cur.ym);else{carry();setStep(0)}
   drawList();refresh();
   cloudUI();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
