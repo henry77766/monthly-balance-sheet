@@ -24,6 +24,7 @@
 }
 html{font-size:clamp(15px,4.1vw,21px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
 html,body{margin:0;padding:0;height:100%;overscroll-behavior-y:none}
 body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font-family:var(--sans);color:inherit}
@@ -33,6 +34,13 @@ button{font-family:var(--sans);color:inherit}
   background:rgba(241,242,238,.92);backdrop-filter:saturate(180%) blur(.9rem);
   -webkit-backdrop-filter:saturate(180%) blur(.9rem);display:flex;align-items:center;gap:.75rem}
 .topbar h1{margin:0;font-size:1.06rem;font-weight:600;letter-spacing:.03em}
+.ibtn{width:2.5rem;height:2.5rem;border-radius:50%;border:.06rem solid var(--line);background:var(--card);
+  box-shadow:var(--shadow);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0}
+.ibtn svg{width:1.15rem;height:1.15rem;stroke:var(--ink-2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#gearBtn{margin-left:auto}
+#mbtn:not([hidden])+#gearBtn{margin-left:.5rem}
+#backBtn{margin-right:-.25rem;box-shadow:none;border-color:transparent;background:transparent}
+body.sub .tabbar{transform:translateY(110%)}
 .mpill{margin-left:auto;position:relative;display:inline-flex;align-items:center;
   background:var(--card);border:.06rem solid var(--line);border-radius:99rem;
   padding:.44rem .88rem;box-shadow:var(--shadow)}
@@ -248,6 +256,30 @@ body.sheet-open{overflow:hidden}
 .tabbar{transition:transform .22s ease}
 body.kb .tabbar{transform:translateY(110%)}
 .ver{font-size:.69rem;color:var(--ink-3);text-align:center;margin:.5rem 0 0;font-variant-numeric:tabular-nums}
+.hsplit{font-size:.81rem;color:var(--ink-2);margin:.75rem 0 0}
+.hsplit b{font-weight:600}
+.bsh{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 .63rem;font-size:.94rem;font-weight:600}
+.bsh b{font-family:var(--num);font-weight:600;font-size:1.06rem;font-variant-numeric:tabular-nums}
+.bsh.liab{margin-top:1.1rem;padding-top:.94rem;border-top:.06rem solid var(--line)}
+.bsh.net{margin:.94rem 0 0;padding-top:.94rem;border-top:.13rem solid var(--ink);font-size:1rem}
+.bsh.net b{font-size:1.19rem}
+.leg .d.none{background:var(--line)}
+.cmore{font-size:.72rem;color:var(--ink-3);margin:.75rem 0 0}
+.entw{border-bottom:.06rem solid var(--line)}
+.entw:last-child{border-bottom:none}
+.entw .ent{border-bottom:none}
+.ent .chev{width:.5rem;height:.5rem;flex:none;border-right:.11rem solid var(--ink-3);border-bottom:.11rem solid var(--ink-3);
+  transform:rotate(45deg);margin:0 .13rem .19rem .25rem;transition:transform .2s}
+.ent.open .chev{transform:rotate(-135deg);margin-bottom:-.13rem}
+.det{background:var(--paper);border-radius:.88rem;padding:.75rem .94rem .94rem;margin:0 0 .88rem}
+.dl{display:flex;justify-content:space-between;padding:.31rem 0;font-size:.84rem;color:var(--ink-2)}
+.dl b{font-family:var(--num);font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.dl.up b{color:var(--gain)} .dl.down b{color:var(--loss)}
+.dl.tot{border-top:.06rem solid var(--line);margin-top:.25rem;padding-top:.5rem;color:var(--ink)}
+.dl.tot b{font-weight:600}
+.dl.net{font-weight:600;color:var(--ink)} .dl.net b{font-weight:600}
+.dnote{font-size:.72rem;color:var(--ink-3);margin:.13rem 0 .5rem;line-height:1.6}
+.dedit{margin-top:.63rem;background:var(--card)}
 .note{font-size:.78rem;color:var(--ink-2);line-height:1.75;margin:0 0 .88rem}
 .toast{position:fixed;left:1rem;right:1rem;max-width:32rem;margin:0 auto;
   bottom:calc(var(--navh) + max(env(safe-area-inset-bottom), .9rem) + .75rem);
@@ -265,8 +297,10 @@ body.kb .toast{bottom:1rem}
 <body>
 
 <div class="topbar">
+  <button class="ibtn" id="backBtn" aria-label="返回" hidden><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
   <h1 id="ttl">總覽</h1>
-  <button class="mpill" id="mbtn" aria-label="切換月份"><span id="mtxt">2026/10</span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg></button>
+  <button class="mpill" id="mbtn" aria-label="切換要填的月份" hidden><span id="mtxt">2026/10</span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg></button>
+  <button class="ibtn" id="gearBtn" aria-label="資料與設定"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   <input type="hidden" id="ym">
 </div>
 
@@ -280,39 +314,22 @@ body.kb .toast{bottom:1rem}
       <div class="chip"><span class="k">較上月</span><span class="v sm" id="delta">第一個月</span></div>
       <div class="chip"><span class="k">本月支出</span><span class="v sm" id="spend">下個月才有</span></div>
     </div>
+    <p class="hsplit" id="hsplit" hidden></p>
     <div class="hnote" id="hnote" hidden><span id="hnoteTxt"></span><button id="hnoteGo">去填寫</button></div>
   </div>
   <div class="card">
-    <p class="ctitle">淨值走勢</p>
-    <div class="chart" id="ch-net"></div>
-  </div>
-  <div class="card">
-    <p class="ctitle">每月收支</p>
-    <p class="cstory" id="flow-story" hidden></p>
-    <div class="lgd" id="flow-lgd" hidden><span><i class="sw" style="background:var(--s-in)"></i>收入</span><span><i class="sw" style="background:var(--s-out)"></i>支出</span></div>
-    <div class="chart" id="ch-flow"></div>
-    <button class="tview" id="flow-toggle" hidden>顯示每月數字</button>
-    <div class="tlist" id="flow-list" hidden></div>
-  </div>
-  <div class="card">
-    <p class="ctitle">錢放在哪</p>
+    <p class="ctitle" id="bsTitle">資產負債表</p>
+    <div class="bsh"><span>資產</span><b id="bsA">0</b></div>
     <div class="bar" id="bar"></div>
     <div class="leg" id="leg"></div>
-  </div>
-  <div class="card">
-    <p class="ctitle">資產與負債</p>
-    <div class="work">
-      <div class="l"><span>現金合計</span><b id="o-cash">0</b></div>
-      <div class="l"><span>投資合計</span><b id="o-inv">0</b></div>
-      <div class="l"><span>待收回的錢</span><b id="o-lent">0</b></div>
-      <div class="l"><span>總資產</span><b id="o-ta">0</b></div>
-      <div class="l"><span>總負債</span><b id="o-tl">0</b></div>
-    </div>
+    <div class="bsh liab"><span>負債</span><b id="bsL">0</b></div>
+    <div class="leg" id="legL"></div>
+    <div class="bsh net"><span>淨值</span><b id="bsN">0</b></div>
   </div>
 </section>
 
 <section class="view" id="v-edit">
-  <div class="restore" id="restore" hidden>第一次用，或是紀錄被清掉了？如果之前有連接雲端備份，到下方「紀錄」頁貼上備份網址，全部紀錄就會拿回來。</div>
+  <div class="restore" id="restore" hidden>第一次用，或是紀錄被清掉了？如果之前有連接雲端備份，點右上角的齒輪，在「雲端備份」貼上網址，全部紀錄就會拿回來。</div>
   <div class="steps"><i class="on"></i><i></i><i></i><i></i></div>
   <div class="crow"><p class="counter" id="counter">1 / 4</p><span class="dtag" id="dtag" hidden>已自動暫存</span></div>
 
@@ -394,11 +411,25 @@ body.kb .toast{bottom:1rem}
 
 <section class="view" id="v-log">
   <div class="card">
+    <p class="ctitle">淨值走勢</p>
+    <div class="chart" id="ch-net"></div>
+  </div>
+  <div class="card">
+    <p class="ctitle">每月收支</p>
+    <p class="cstory" id="flow-story" hidden></p>
+    <div class="lgd" id="flow-lgd" hidden><span><i class="sw" style="background:var(--s-in)"></i>收入</span><span><i class="sw" style="background:var(--s-out)"></i>支出</span></div>
+    <div class="chart" id="ch-flow"></div>
+    <p class="cmore" id="flow-more" hidden>點下面的月份可以看每個月的細節</p>
+  </div>
+  <div class="card">
     <p class="ctitle">歷月紀錄</p>
-    <p class="note" id="editHint" hidden>填錯的話，點那個月份就能進去修改</p>
-    <div class="enth"><span class="ym">月份</span><span class="cg">增減</span><span class="sp">支出</span><span class="nv">淨值</span></div>
+    <p class="note" id="editHint" hidden>點月份會展開細節，要修改也從裡面進去</p>
+    <div class="enth"><span class="ym">月份</span><span class="cg">存下</span><span class="sp">支出</span><span class="nv">淨值</span></div>
     <div id="list"></div>
   </div>
+</section>
+
+<section class="view" id="v-set">
   <div class="card">
     <p class="ctitle">匯出報表</p>
     <p class="note">複製文字後直接貼到跟 Claude 的對話裡就能分析。CSV 檔可以用分享傳給 Claude，或存到手機、用試算表打開。</p>
@@ -444,7 +475,7 @@ const LIAB=['cc','loan'];
 const FLOW=['income','buy','sell'];
 const LENT=['lent'];
 const F=[...CASH,...INV,...LIAB,...LENT,...FLOW];
-const APP_VERSION='2026.11.01-3';
+const APP_VERSION='2026.11.01-5';
 const CARRY=['rate','ins','stkKgi','stkUnion','jpy','okx','lido','lent'];
 const STEPNAMES=['現金','投資部位','負債與待收回','金流'];
 
@@ -596,7 +627,10 @@ function calc(m,p){
     delta=net-pnet;
     spend=(pcash0-cash)+m.income-m.buy+m.sell+dliab-dlent;
   }
-  return {cash,stock,jpytwd,crypto,inv,lent,assets,liab,net,delta,spend,dliab,dlent,pcash};
+  /* 淨值變化 ＝ 自己存下的錢 ＋ 投資漲跌 */
+  const saved=spend===null?null:(Number(m.income)||0)-spend;
+  const mkt=(delta===null||saved===null)?null:delta-saved;
+  return {cash,stock,jpytwd,crypto,inv,lent,assets,liab,net,delta,spend,dliab,dlent,pcash,saved,mkt};
 }
 
 const MIX=[{k:'cash',n:'現金',c:'var(--c1)'},{k:'stock',n:'台股',c:'var(--c2)'},
@@ -604,9 +638,15 @@ const MIX=[{k:'cash',n:'現金',c:'var(--c1)'},{k:'stock',n:'台股',c:'var(--c2
   {k:'ins',n:'保單',c:'var(--c5)'},{k:'lent',n:'待收回',c:'var(--c6)'}];
 
 function drawMix(m,r){
-  const bar=$('bar'),leg=$('leg');
+  const bar=$('bar'),leg=$('leg'),legL=$('legL');
   const v={cash:r.cash,stock:r.stock,jpytwd:r.jpytwd,crypto:r.crypto,ins:m.ins,lent:r.lent};
-  bar.innerHTML='';leg.innerHTML='';
+  bar.innerHTML='';leg.innerHTML='';legL.replaceChildren();
+  $('bsTitle').textContent=m.ym?'資產負債表 ・ '+(+m.ym.split('-')[1])+'月底':'資產負債表';
+  $('bsA').textContent=fmt(r.assets);$('bsL').textContent=fmt(r.liab);$('bsN').textContent=fmt(r.net);
+  [['國泰信用卡',Number(m.cc)||0],['學貸',Number(m.loan)||0]].forEach(([n,x])=>{
+    const d=mk('div','r');d.append(mk('span','d none'),mk('span','',n),mk('span','a',fmt(x)),mk('span','p',r.liab>0?(x/r.liab*100).toFixed(1)+'%':''));
+    legL.appendChild(d);
+  });
   if(r.assets<=0){leg.innerHTML='<p style="font-size:.81rem;color:var(--ink-3);margin:.38rem 0 0">還沒有資料。到「填寫」把數字補上就會畫出來。</p>';return}
   MIX.forEach(s=>{
     const x=v[s.k];if(x<=0)return;
@@ -663,11 +703,13 @@ function refresh(){
   if(ov&&ov.ym!==m.ym){hn.hidden=false;$('hnoteTxt').textContent=mo(m.ym)+'還沒填，先顯示'+mo(ov.ym)+'的紀錄'}
   else hn.hidden=true;
   $('net').innerHTML='<i>NT$</i>'+fmt(orr.net);
-  $('o-cash').textContent=fmt(orr.cash);
-  $('o-inv').textContent=fmt(orr.inv);
-  $('o-ta').textContent=fmt(orr.assets);
-  $('o-tl').textContent=fmt(orr.liab);
-  $('o-lent').textContent=fmt(orr.lent);
+  const hs=$('hsplit');
+  if(orr.delta!==null&&orr.saved!==null){
+    hs.replaceChildren('其中自己存下 ');
+    const b1=mk('b',orr.saved>=0?'up':'down',sgn(orr.saved));hs.append(b1,'，投資漲跌 ');
+    const b2=mk('b',orr.mkt>=0?'up':'down',sgn(orr.mkt));hs.append(b2);
+    hs.hidden=false;
+  }else hs.hidden=true;
   $('s-cash').textContent=fmt(r.cash);
   $('s-inv').textContent=fmt(r.inv);
   $('s-liab').textContent=fmt(r.liab);
@@ -830,9 +872,9 @@ function barPath(x,w,y0,y1){
 function drawFlow(all){
   const data=all.filter(d=>d.spend!==null);
   const box=$('ch-flow');box.replaceChildren();
-  const story=$('flow-story'),lgd=$('flow-lgd'),tg=$('flow-toggle'),list=$('flow-list');
+  const story=$('flow-story'),lgd=$('flow-lgd'),more=$('flow-more');
   if(!data.length){
-    story.hidden=true;lgd.hidden=true;tg.hidden=true;list.hidden=true;
+    story.hidden=true;lgd.hidden=true;more.hidden=true;
     emptyMsg(box,'要有兩個月以上的紀錄才算得出支出，第二個月存完就會出現。');
     return;
   }
@@ -847,17 +889,7 @@ function drawFlow(all){
     story.append(mm+'比收入多花了 ');
     const b=document.createElement('b');b.textContent=fmt(-saved);story.append(b);
   }
-  story.hidden=false;lgd.hidden=false;tg.hidden=false;
-
-  list.replaceChildren();
-  const head=document.createElement('div');head.className='tr th';
-  ['月份','收入','支出','存下'].forEach(t=>{const sp=document.createElement('span');sp.textContent=t;head.appendChild(sp)});
-  list.appendChild(head);
-  [...data].reverse().forEach(d=>{
-    const r=document.createElement('div');r.className='tr';
-    [ymFull(d.ym),fmt(d.income),fmt(d.spend),sgn(d.income-d.spend)].forEach(t=>{const sp=document.createElement('span');sp.textContent=t;r.appendChild(sp)});
-    list.appendChild(r);
-  });
+  story.hidden=false;lgd.hidden=false;more.hidden=false;
 
   const W=box.clientWidth;if(!W)return;
   const fs=parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -901,36 +933,57 @@ function drawFlow(all){
 
 function drawCharts(){
   chartHides=[];
-  if(!$('v-home').classList.contains('on'))return;
+  if(!$('v-log').classList.contains('on'))return;
   const d=chartSeries();
   drawNet(d);drawFlow(d);
 }
 document.addEventListener('pointerdown',e=>{if(!e.target.closest||!e.target.closest('.chart'))chartHides.forEach(h=>h())});
 let rsT=null;
 window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(drawCharts,150)});
-$('flow-toggle').onclick=()=>{
-  const l=$('flow-list');l.hidden=!l.hidden;
-  $('flow-toggle').textContent=l.hidden?'顯示每月數字':'收起每月數字';
-};
 
 function drawList(){
   const el=$('list');
   $('editHint').hidden=!months.length;
   if(!months.length){el.innerHTML='<div class="blank"><p>還沒有紀錄。<br>到「填寫」走完四步就會出現第一列。</p></div>';drawCharts();return}
-  el.innerHTML='';
+  el.replaceChildren();
   [...months].sort((a,b)=>a.ym<b.ym?1:-1).forEach(m=>{
     const r=calc(m,prevOf(m.ym));
-    const b=document.createElement('button');b.className='ent';
-    b.innerHTML='<span class="ym">'+m.ym.replace('-','/')+'</span>'+
-      '<span class="cg '+(r.delta===null?'':(r.delta>=0?'up':'down'))+'">'+(r.delta===null?'—':sgn(r.delta))+'</span>'+
-      '<span class="sp">'+(r.spend===null?'—':fmt(r.spend))+'</span>'+
-      '<span class="nv">'+fmt(r.net)+'</span>';
-    b.onclick=async()=>{
+    const w=mk('div','entw');
+    const b=mk('button','ent');
+    b.setAttribute('aria-expanded','false');
+    b.append(mk('span','ym',m.ym.replace('-','/')),
+      mk('span','cg '+(r.saved===null?'':(r.saved>=0?'up':'down')),r.saved===null?'—':sgn(r.saved)),
+      mk('span','sp',r.spend===null?'—':fmt(r.spend)),
+      mk('span','nv',fmt(r.net)),
+      mk('i','chev'));
+    const det=mk('div','det');det.hidden=true;
+    const line=(k,v,cls)=>{const l=mk('div','dl'+(cls?' '+cls:''));l.append(mk('span','',k),mk('b','',v));det.appendChild(l)};
+    if(r.spend===null){
+      det.appendChild(mk('p','dnote','這是第一筆紀錄，沒有上個月可以比較，所以算不出支出和存下的錢。'));
+    }else{
+      const inc=Number(m.income)||0;
+      line('收入',fmt(inc));
+      line('支出',fmt(r.spend));
+      line('存下',sgn(r.saved)+(inc>0?' ・ 儲蓄率 '+Math.round(r.saved/inc*100)+'%':''),r.saved>=0?'up':'down');
+      line('投資漲跌',sgn(r.mkt),r.mkt>=0?'up':'down');
+      line('淨值變化',sgn(r.delta),'tot');
+      det.appendChild(mk('p','dnote','淨值變化 ＝ 存下 ＋ 投資漲跌'));
+    }
+    line('淨值',fmt(r.net),'net');
+    const eb=mk('button','btn sec slim dedit','編輯這個月');
+    eb.onclick=async()=>{
       if(m.ym===$('ym').value&&dirty){go('edit');return}
       if(!(await confirmDiscard()))return;
       loadMonth(m.ym);go('edit');
     };
-    el.appendChild(b);
+    det.appendChild(eb);
+    b.onclick=()=>{
+      const open=det.hidden;
+      el.querySelectorAll('.det').forEach(x=>x.hidden=true);
+      el.querySelectorAll('.ent').forEach(x=>{x.setAttribute('aria-expanded','false');x.classList.remove('open')});
+      if(open){det.hidden=false;b.setAttribute('aria-expanded','true');b.classList.add('open')}
+    };
+    w.append(b,det);el.appendChild(w);
   });
   drawCharts();
 }
@@ -948,7 +1001,7 @@ function carry(){
   if(!p){$('rate').value=$('rate').value||0.2;return}
   CARRY.forEach(f=>{if(!$(f).value){const v=f==='lent'?effLent(p):p[f];$(f).value=v?fmtIn(v):''}});
 }
-const ORDER={home:0,edit:1,log:2};
+const ORDER={home:0,edit:1,log:2,set:3};
 let curView='home';
 function go(v,fromPop){
   if(!fromPop&&v===curView){window.scrollTo({top:0,behavior:'smooth'});return}
@@ -959,14 +1012,18 @@ function go(v,fromPop){
   const el=$('v-'+v);el.classList.add('on');
   if(prev!==v){void el.offsetWidth;el.classList.add('in-'+dir)}
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
-  $('ttl').textContent={home:'總覽',edit:'填寫',log:'紀錄'}[v];
+  $('ttl').textContent={home:'總覽',edit:'填寫',log:'紀錄',set:'資料與設定'}[v];
+  $('mbtn').hidden=(v!=='edit');
+  $('gearBtn').hidden=(v==='set');
+  $('backBtn').hidden=(v!=='set');
+  document.body.classList.toggle('sub',v==='set');
   if(!fromPop){
     try{
-      if(v!=='home'&&prev==='home')history.pushState({v},'');
+      if(v==='set'||(v!=='home'&&prev==='home'))history.pushState({v},'');
       else if(v!=='home')history.replaceState({v},'');
     }catch(e){}
   }
-  if(v==='home')drawCharts();
+  if(v==='log')drawCharts();
   window.scrollTo(0,0);
 }
 function setStep(n,dir){
@@ -1164,6 +1221,7 @@ document.querySelectorAll('#v-edit .card').forEach(card=>{
     const t=e.changedTouches[0],dx=t.clientX-sw.x,dy=t.clientY-sw.y,dt=Date.now()-sw.t;
     sw=null;
     if(dt>700||Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.6)return;
+    if(curView==='set')return;
     const i=order.indexOf(curView),j=dx<0?i+1:i-1;
     if(j<0||j>2)return;
     go(order[j]);
@@ -1392,6 +1450,8 @@ $('exCsv').onclick=async()=>{
   toast('已下載 '+name);
 };
 $('hnoteGo').onclick=()=>go('edit');
+$('gearBtn').onclick=()=>go('set');
+$('backBtn').onclick=()=>{if(history.state&&history.state.v==='set')history.back();else go('home')};
 async function confirmDiscard(){
   if(!dirty)return true;
   const ym=$('ym').value||nowYM();
