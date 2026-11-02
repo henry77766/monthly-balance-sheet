@@ -15,7 +15,7 @@
   --line:#E7EAE3; --accent:#8FA8B8;
   --gain:#6E9179; --loss:#C08E88;
   --s-in:#4279B5; --s-out:#C66F4E;
-  --c1:#93AAB8; --c2:#9BB095; --c3:#CDB795; --c4:#AA9BB0; --c5:#BFA098; --c6:#B4AEA2;
+  --c1:#93AAB8; --c2:#9BB095; --c3:#CDB795; --c4:#AA9BB0; --c5:#BFA098; --c6:#B4AEA2; --c7:#8FB3AE;
   --num:system-ui,-apple-system,"Roboto","Segoe UI","Noto Sans TC","PingFang TC",sans-serif;
   --danger:#A9493F;
   --sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
@@ -288,6 +288,32 @@ body.kb .tabbar{transform:translateY(110%)}
 .toast.show{animation:tl 2.6s cubic-bezier(.2,.8,.2,1)}
 @keyframes tl{0%{opacity:0;transform:translateY(.75rem)}10%,85%{opacity:1;transform:none}100%{opacity:0;transform:none}}
 body.kb .toast{bottom:1rem}
+/* ---------- 帳戶管理 ---------- */
+.ag{margin-bottom:.63rem}
+.agh{font-size:.72rem;color:var(--ink-3);letter-spacing:.12em;margin:0 0 .13rem}
+.arow{display:flex;align-items:center;gap:.5rem;padding:.56rem 0;border-bottom:.06rem solid var(--line);min-width:0}
+.arow:last-child{border-bottom:none}
+.arow .an{font-size:.94rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arow .at{font-size:.69rem;color:var(--ink-3);flex:none}
+.arow.off .an{color:var(--ink-3)}
+.arow .acts{margin-left:auto;display:flex;gap:.38rem;flex:none}
+.arow .acts button{background:var(--paper);border:none;border-radius:.63rem;font-size:.75rem;color:var(--ink-2);
+  padding:.44rem .69rem;cursor:pointer;font-family:var(--sans)}
+.rempty{font-size:.78rem;color:var(--ink-3);margin:.25rem 0 .5rem;line-height:1.7}
+.sh-lab{font-size:.75rem;color:var(--ink-2);margin:0 0 .38rem}
+.sh-in{width:100%;font-size:1rem;color:var(--ink);background:var(--paper);border:.09rem solid transparent;
+  border-radius:.88rem;padding:.81rem .94rem;margin:0 0 .88rem;-webkit-appearance:none;appearance:none;font-family:var(--sans)}
+.sh-in:focus{outline:none;background:#fff;border-color:var(--accent)}
+.sh-err{font-size:.78rem;color:var(--danger);margin:-.25rem 0 .75rem}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:0 0 1rem}
+.tgrid button{border:none;background:var(--paper);border-radius:.88rem;padding:.63rem .75rem;text-align:left;
+  cursor:pointer;font-family:var(--sans);color:var(--ink)}
+.tgrid button b{display:block;font-size:.88rem;font-weight:600}
+.tgrid button small{display:block;font-size:.66rem;color:var(--ink-3);margin-top:.13rem;line-height:1.4}
+.tgrid button.sel{background:var(--ink);color:#fff}
+.tgrid button.sel small{color:rgba(255,255,255,.72)}
+.tgrid button,.arow .acts button{position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
+
 @media (prefers-reduced-motion:reduce){
   .view.in-r,.view.in-l,.card.in-r,.card.in-l,.toast.show,.rpl{animation-duration:.01s}
   .bar i,.sheet,.sheet-bg,.tabbar,.btn{transition:none}
@@ -335,49 +361,27 @@ body.kb .toast{bottom:1rem}
 
   <div class="card" id="step0">
     <p class="stepname">現金</p>
-    <p class="stepsub">四家銀行的活存餘額，照順序查一家填一格</p>
-    <div class="restore" id="legacyNote" hidden>這個月是從舊版找回來的。舊版的現金、台股、加密貨幣只記總數，所以各自放在第一格，總數是對的。</div>
-    <div class="row"><label for="cathay">國泰世華</label>
-      <div class="ib"><input id="cathay" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="kgi">凱基</label>
-      <div class="ib"><input id="kgi" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="fubon">富邦</label>
-      <div class="ib"><input id="fubon" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="unionb">聯邦</label>
-      <div class="ib"><input id="unionb" inputmode="decimal" placeholder="0"><em></em></div></div>
+    <p class="stepsub">每家銀行的活存餘額，照順序查一家填一格</p>
+    <div id="rows-cash"></div>
     <div class="sum"><span>現金合計</span><b id="s-cash">0</b></div>
   </div>
 
   <div class="card" id="step1" hidden>
     <p class="stepname">投資部位</p>
     <p class="stepsub">只影響淨值，不影響支出。沒空查就留著上月的數字</p>
-    <div class="row"><label for="stkKgi">凱基證券</label><span class="sub">目前市值</span>
-      <div class="ib"><input id="stkKgi" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="stkUnion">聯邦證券</label><span class="sub">目前市值</span>
-      <div class="ib"><input id="stkUnion" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="jpy">日幣</label><span class="sub">原幣金額</span>
-      <div class="ib"><input id="jpy" inputmode="decimal" placeholder="0"><em>円</em></div></div>
-    <div class="row"><label for="rate">日幣匯率</label><span class="sub">1 円換多少台幣</span>
-      <div class="ib"><input id="rate" inputmode="decimal" placeholder="0.2"><em></em></div></div>
-    <div class="row"><label for="okx">OKX</label><span class="sub">帳戶總值折台幣</span>
-      <div class="ib"><input id="okx" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="lido">Lido 質押</label><span class="sub">折台幣</span>
-      <div class="ib"><input id="lido" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="ins">保單解約金</label><span class="sub">看保單的年度末解約金</span>
-      <div class="ib"><input id="ins" inputmode="decimal" placeholder="0"><em></em></div></div>
+    <div id="rows-inv"></div>
     <div class="sum"><span>投資合計</span><b id="s-inv">0</b></div>
   </div>
 
   <div class="card" id="step2" hidden>
     <p class="stepname">負債與待收回</p>
-    <p class="stepsub">信用卡和學貸每個月都要重查，沿用舊數字會讓支出算錯</p>
-    <div class="row"><label for="cc">國泰信用卡</label><span class="sub">目前未繳總額，已出帳加上還沒出帳的都要算</span>
-      <div class="ib"><input id="cc" inputmode="decimal" placeholder="0"><em></em></div></div>
-    <div class="row"><label for="loan">學貸餘額</label><span class="sub">查當下還欠多少</span>
-      <div class="ib"><input id="loan" inputmode="decimal" placeholder="0"><em></em></div></div>
+    <p class="stepsub">信用卡每個月都要重查，沿用舊數字會讓支出算錯</p>
+    <div id="rows-liab"></div>
     <div class="sum"><span>總負債</span><b id="s-liab">0</b></div>
     <div class="row" style="margin-top:.63rem"><label for="lent">待收回的錢</label><span class="sub">借給別人的錢、租屋押金這類之後會拿回來的錢，填還沒拿回來的總額</span>
       <div class="ib"><input id="lent" inputmode="decimal" placeholder="0"><em></em></div></div>
+    <div class="row"><label for="loss">拿不回來的錢</label><span class="sub">這個月確定拿不回來的借款或押金，待收回要一起減掉。這筆不算支出，會另外列成損失，沒有就留 0</span>
+      <div class="ib"><input id="loss" inputmode="decimal" placeholder="0"><em></em></div></div>
   </div>
 
   <div class="card" id="step3" hidden>
@@ -387,6 +391,8 @@ body.kb .toast{bottom:1rem}
       <div class="ib"><input id="income" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="row"><label for="buy">買進</label><span class="sub">現金搬去投資：定期定額、買股、換日幣、買幣</span>
       <div class="ib"><input id="buy" inputmode="decimal" placeholder="0"><em></em></div></div>
+    <div class="row"><label for="prem">保費</label><span class="sub">當成把錢放進保單，不算支出。金額會沿用上個月</span>
+      <div class="ib"><input id="prem" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="row"><label for="sell">賣出</label><span class="sub">投資換回現金，沒有就留 0</span>
       <div class="ib"><input id="sell" inputmode="decimal" placeholder="0"><em></em></div></div>
     <div class="work">
@@ -394,9 +400,11 @@ body.kb .toast{bottom:1rem}
       <div class="l"><span>本月現金</span><b id="w-cc">0</b></div>
       <div class="l"><span>收入</span><b id="w-in">0</b></div>
       <div class="l"><span>買進</span><b id="w-buy">0</b></div>
+      <div class="l"><span>保費</span><b id="w-prem">0</b></div>
       <div class="l"><span>賣出</span><b id="w-sell">0</b></div>
       <div class="l"><span>負債變化</span><b id="w-dl">0</b></div>
       <div class="l"><span>待收回變化</span><b id="w-dlent">0</b></div>
+      <div class="l" id="w-loss-row" hidden><span>拿不回來的錢</span><b id="w-loss">0</b></div>
       <div class="l tot"><span>這個月支出</span><b id="w-sp">—</b></div>
     </div>
     <div class="flag" id="flag" hidden></div>
@@ -430,6 +438,17 @@ body.kb .toast{bottom:1rem}
 </section>
 
 <section class="view" id="v-set">
+  <div class="card">
+    <p class="ctitle">帳戶</p>
+    <p class="note">新開或關掉帳戶時在這裡改。停用的帳戶不會出現在填寫畫面，過去月份的數字會保留。</p>
+    <div id="acctList"></div>
+    <button class="btn slim" id="acctAdd">新增帳戶</button>
+  </div>
+  <div class="card">
+    <p class="ctitle">每月固定開銷</p>
+    <p class="note">房租、電信這類每個月一定會花的錢加起來，保費不用算。算出來的支出比這個還少時，App 會提醒你可能有收入或賣出沒記。金額隨時可以改，留空白就不檢查。</p>
+    <div class="ib"><input id="fixedCost" inputmode="decimal" placeholder="例如 9,599" autocomplete="off" enterkeyhint="done"><em></em></div>
+  </div>
   <div class="card">
     <p class="ctitle">匯出報表</p>
     <p class="note">複製文字後直接貼到跟 Claude 的對話裡就能分析。CSV 檔可以用分享傳給 Claude，或存到手機、用試算表打開。</p>
@@ -468,15 +487,50 @@ body.kb .toast{bottom:1rem}
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"><div id="sheetBody"></div></div>
 
 <script>
-const KEY='balancesheet:v2';
-const CASH=['cathay','kgi','fubon','unionb'];
-const INV=['stkKgi','stkUnion','jpy','rate','okx','lido','ins'];
-const LIAB=['cc','loan'];
-const FLOW=['income','buy','sell'];
-const LENT=['lent'];
-const F=[...CASH,...INV,...LIAB,...LENT,...FLOW];
-const APP_VERSION='2026.11.01-5';
-const CARRY=['rate','ins','stkKgi','stkUnion','jpy','okx','lido','lent'];
+const KEY='balancesheet:v3';
+const ACC_KEY='balancesheet:v3:accounts';
+/* 帳戶類型：算在哪一組、要不要自動沿用上個月、填寫時的說明 */
+const TYPES={
+  bank:{g:'cash',n:'銀行活存',carry:false,sub:'',d:'活存、數位帳戶'},
+  stock:{g:'inv',n:'股票',carry:true,sub:'目前市值',d:'證券戶的市值'},
+  fx:{g:'inv',n:'外幣',carry:true,sub:'原幣金額',d:'填原幣金額和匯率'},
+  crypto:{g:'inv',n:'加密貨幣',carry:true,sub:'折台幣',d:'交易所、錢包'},
+  policy:{g:'inv',n:'保單',carry:true,sub:'看保單的年度末解約金',d:'填解約金'},
+  other:{g:'inv',n:'其他投資',carry:true,sub:'目前價值',d:'基金、黃金等'},
+  card:{g:'liab',n:'信用卡',carry:false,sub:'目前未繳總額，已出帳加上還沒出帳的都要算',d:'每個月重查'},
+  loan:{g:'liab',n:'貸款',carry:true,sub:'剩餘本金。沒空查就先沿用上個月，下次更新時會自動補回來',d:'填剩餘本金'}
+};
+const GROUPS=[{g:'cash',n:'現金'},{g:'inv',n:'投資'},{g:'liab',n:'負債'}];
+/* 原本寫死的帳戶，代號沿用舊欄位，已經存的紀錄可以直接接上 */
+const DEFAULT_ACCOUNTS=[
+  {id:'cathay',name:'國泰世華',type:'bank'},
+  {id:'kgi',name:'凱基',type:'bank'},
+  {id:'fubon',name:'富邦',type:'bank'},
+  {id:'unionb',name:'聯邦',type:'bank'},
+  {id:'stkKgi',name:'凱基證券',type:'stock'},
+  {id:'stkUnion',name:'聯邦證券',type:'stock'},
+  {id:'jpy',name:'日幣',type:'fx',rk:'rate',unit:'円',defRate:0.2},
+  {id:'okx',name:'OKX',type:'crypto',sub:'帳戶總值折台幣'},
+  {id:'lido',name:'Lido',type:'crypto',sub:'質押折台幣'},
+  {id:'ins',name:'保單解約金',type:'policy'},
+  {id:'cc',name:'國泰信用卡',type:'card'},
+  {id:'loan',name:'學貸',type:'loan',sub:'富邦顯示的剩餘本金。沒空查就先沿用上個月，下次更新時會自動補回來'}
+];
+let accts={list:DEFAULT_ACCOUNTS.map(a=>Object.assign({on:true},a)),updatedAt:''};
+const ACC=()=>accts.list;
+const tyOf=a=>TYPES[a.type]?a.type:'other';
+const grpOf=a=>TYPES[tyOf(a)].g;
+const rateKey=a=>a.rk||(a.id+'R');
+const validAccts=a=>!!(a&&Array.isArray(a.list)&&a.list.length&&a.list.every(x=>x&&x.id&&x.name&&x.type));
+function loadAccounts(){
+  try{const a=JSON.parse(localStorage.getItem(ACC_KEY)||'null');if(validAccts(a))accts=a}catch(e){}
+}
+function storeAccounts(){try{localStorage.setItem(ACC_KEY,JSON.stringify(accts))}catch(e){}}
+function saveAccounts(){accts.updatedAt=new Date().toISOString();storeAccounts()}
+/* 固定的格子：待收回、拿不回來的錢、收入、買進、保費、賣出 */
+const FIXED=['lent','loss','income','buy','prem','sell'];
+let F=[];
+const APP_VERSION='2026.11.01-8';
 const STEPNAMES=['現金','投資部位','負債與待收回','金流'];
 
 let months=[], step=0;
@@ -520,7 +574,7 @@ const prevYMOf=ym=>{let [y,m]=ym.split('-').map(Number);m--;if(m<1){m=12;y--}ret
 /* 每月 1 到 10 號打開時，如果上個月還沒存，預設選上個月 */
 function defaultYM(){
   const now=nowYM(),pv=prevYMOf(now);
-  if(new Date().getDate()<=10&&months.length&&!months.some(x=>x.ym===pv))return pv;
+  if(new Date().getDate()<=10&&!months.some(x=>x.ym===pv))return pv;
   return now;
 }
 /* 被移走的月份，避免雲端同步時又被合併回來 */
@@ -529,31 +583,23 @@ function goneMap(){try{return JSON.parse(localStorage.getItem(GONE_KEY)||'{}')}c
 function markGone(ym){const g=goneMap();g[ym]=new Date().toISOString();try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}
 function unGone(ym){const g=goneMap();if(g[ym]){delete g[ym];try{localStorage.setItem(GONE_KEY,JSON.stringify(g))}catch(e){}}}
 
-/* 從舊版找回資料：舊版存在 balancesheet:months，欄位是總數 */
-const LEGACY_KEY='balancesheet:months';
-function importLegacy(){
-  let raw=null,old=null;
-  try{raw=localStorage.getItem(LEGACY_KEY);old=JSON.parse(raw||'null')}catch(e){old=null}
-  if(!Array.isArray(old)||!old.length)return [];
-  const have=new Set(months.map(m=>m.ym)),gone=goneMap(),added=[];
-  old.forEach(o=>{
-    if(!o||!/^\d{4}-\d{2}$/.test(o.ym||'')||have.has(o.ym)||gone[o.ym])return;
-    const n=k=>Number(o[k])||0,mv=n('moved');
-    const r={ym:o.ym,cathay:n('cash'),kgi:0,fubon:0,unionb:0,
-      stkKgi:n('stock'),stkUnion:0,jpy:n('jpy'),rate:n('rate')||0.2,
-      okx:n('crypto'),lido:0,ins:n('ins'),cc:n('cc'),loan:n('loan'),
-      income:n('income'),buy:Math.max(mv,0),sell:Math.max(-mv,0),
-      legacy:true,updatedAt:new Date().toISOString()};
-    if(o.savedAt)r.savedAt=o.savedAt;
-    if(isBlank(r))return;
-    months.push(r);added.push(o.ym);
-  });
-  try{localStorage.setItem(LEGACY_KEY+'.backup',raw);localStorage.removeItem(LEGACY_KEY)}catch(e){}
-  return added;
+/* 2026 年 11 月起重新開始記：第一次打開這一版時，清掉舊版留在手機裡的紀錄、草稿和雲端連接 */
+const START_KEY='balancesheet:v3:start';
+const OLD_KEYS=['balancesheet:v2','balancesheet:months','balancesheet:months.backup','balancesheet:draft',
+  'balancesheet:gone','balancesheet:cloudUrl','balancesheet:cloudDirty','balancesheet:cloudLast'];
+function freshStart(){
+  try{
+    if(localStorage.getItem(START_KEY))return false;
+    const had=OLD_KEYS.some(k=>localStorage.getItem(k)!==null);
+    OLD_KEYS.forEach(k=>localStorage.removeItem(k));
+    localStorage.setItem(START_KEY,todayLocal());
+    return had;
+  }catch(e){return false}
 }
 /* 每一格都是 0 或空白的月份，視為沒有紀錄；匯率不算，因為它有預設值 */
-const BLANK_KEYS=['cathay','kgi','fubon','unionb','stkKgi','stkUnion','jpy','okx','lido','ins','cc','loan','lent','income','buy','sell'];
-const isBlank=m=>BLANK_KEYS.every(k=>!Number(m[k]));
+const META_KEYS=new Set(['ym','savedAt','updatedAt','legacy']);
+const isRateKey=k=>ACC().some(a=>a.type==='fx'&&rateKey(a)===k);
+const isBlank=m=>Object.keys(m).every(k=>META_KEYS.has(k)||isRateKey(k)||!Number(m[k]));
 function dropBlanks(){
   const b=months.filter(isBlank);
   if(!b.length)return false;
@@ -587,74 +633,68 @@ const store={
 function read(){
   const o={ym:$('ym').value||nowYM()};
   F.forEach(f=>o[f]=num($(f).value));
-  if(!o.rate)o.rate=0.2;
+  ACC().forEach(a=>{if(a.type==='fx'&&a.defRate&&!o[rateKey(a)])o[rateKey(a)]=a.defRate});
   const e=months.find(x=>x.ym===o.ym);
   if(e&&e.savedAt)o.savedAt=e.savedAt;
   if(e&&e.updatedAt)o.updatedAt=e.updatedAt;
   return o;
 }
 function prevOf(ym){return months.filter(m=>m.ym<ym).sort((a,b)=>a.ym<b.ym?1:-1)[0]||null}
-/* 待收回的錢：這一格加入之前存的月份沒有這個值，就沿用往前最近一個有填的月份 */
-const hasVal=v=>v!==undefined&&v!==null&&v!=='';
-function effLent(m){
-  let cur=m,guard=0;
-  while(cur&&guard<600){
-    if(hasVal(cur.lent))return Number(cur.lent)||0;
-    cur=prevOf(cur.ym);guard++;
-  }
-  return 0;
+const nz=v=>Number(v)||0;
+const accVal=(m,a)=>a.type==='fx'?nz(m[a.id])*nz(m[rateKey(a)]):nz(m[a.id]);
+/* 各組合計：支出只看現金、投資、負債三組的合計，帳戶增加或減少都不影響算法 */
+function totals(m){
+  const t={cash:0,inv:0,liab:0};
+  Object.keys(TYPES).forEach(k=>t[k]=0);
+  ACC().forEach(a=>{const v=accVal(m,a);t[grpOf(a)]+=v;t[tyOf(a)]+=v});
+  t.lent=nz(m.lent);
+  t.assets=t.cash+t.inv+t.lent;
+  t.net=t.assets-t.liab;
+  return t;
 }
 
 function calc(m,p){
-  const cash=m.cathay+m.kgi+m.fubon+m.unionb;
-  const stock=m.stkKgi+m.stkUnion;
-  const jpytwd=m.jpy*m.rate;
-  const crypto=m.okx+m.lido;
-  const inv=stock+jpytwd+crypto+m.ins;
-  const lent=effLent(m);
-  const assets=cash+inv+lent;
-  const liab=m.cc+m.loan;
-  const net=assets-liab;
+  const t=totals(m);
+  const prem=nz(m.prem),loss=nz(m.loss);
   let delta=null,spend=null,dliab=null,dlent=null,pcash=null;
   if(p){
-    const pcash0=p.cathay+p.kgi+p.fubon+p.unionb;
-    const pliab=p.cc+p.loan;
-    const plent=effLent(p);
-    const pnet=pcash0+p.stkKgi+p.stkUnion+p.jpy*p.rate+p.okx+p.lido+p.ins+plent-pliab;
-    pcash=pcash0;
-    dliab=liab-pliab;
-    dlent=lent-plent;
-    delta=net-pnet;
-    spend=(pcash0-cash)+m.income-m.buy+m.sell+dliab-dlent;
+    const q=totals(p);
+    pcash=q.cash;
+    dliab=t.liab-q.liab;
+    dlent=t.lent-q.lent;
+    delta=t.net-q.net;
+    /* 保費當成把錢放進保單；拿不回來的錢另外算損失，兩者都不算支出 */
+    spend=(q.cash-t.cash)+nz(m.income)-nz(m.buy)-prem+nz(m.sell)+dliab-dlent-loss;
   }
-  /* 淨值變化 ＝ 自己存下的錢 ＋ 投資漲跌 */
-  const saved=spend===null?null:(Number(m.income)||0)-spend;
-  const mkt=(delta===null||saved===null)?null:delta-saved;
-  return {cash,stock,jpytwd,crypto,inv,lent,assets,liab,net,delta,spend,dliab,dlent,pcash,saved,mkt};
+  /* 淨值變化 ＝ 自己存下的錢 − 損失 ＋ 投資漲跌 */
+  const saved=spend===null?null:nz(m.income)-spend;
+  const mkt=(delta===null||saved===null)?null:delta-saved+loss;
+  return Object.assign(t,{delta,spend,dliab,dlent,pcash,saved,mkt,prem,loss});
 }
 
-const MIX=[{k:'cash',n:'現金',c:'var(--c1)'},{k:'stock',n:'台股',c:'var(--c2)'},
-  {k:'jpytwd',n:'日幣',c:'var(--c3)'},{k:'crypto',n:'加密貨幣',c:'var(--c4)'},
-  {k:'ins',n:'保單',c:'var(--c5)'},{k:'lent',n:'待收回',c:'var(--c6)'}];
+const MIX=[{k:'cash',n:'現金',c:'var(--c1)'},{k:'stock',n:'股票',c:'var(--c2)'},
+  {k:'fx',n:'外幣',c:'var(--c3)'},{k:'crypto',n:'加密貨幣',c:'var(--c4)'},
+  {k:'policy',n:'保單',c:'var(--c5)'},{k:'other',n:'其他投資',c:'var(--c7)'},{k:'lent',n:'待收回',c:'var(--c6)'}];
 
 function drawMix(m,r){
   const bar=$('bar'),leg=$('leg'),legL=$('legL');
-  const v={cash:r.cash,stock:r.stock,jpytwd:r.jpytwd,crypto:r.crypto,ins:m.ins,lent:r.lent};
-  bar.innerHTML='';leg.innerHTML='';legL.replaceChildren();
+  bar.replaceChildren();leg.replaceChildren();legL.replaceChildren();
   $('bsTitle').textContent=m.ym?'資產負債表 ・ '+(+m.ym.split('-')[1])+'月底':'資產負債表';
   $('bsA').textContent=fmt(r.assets);$('bsL').textContent=fmt(r.liab);$('bsN').textContent=fmt(r.net);
-  [['國泰信用卡',Number(m.cc)||0],['學貸',Number(m.loan)||0]].forEach(([n,x])=>{
-    const d=mk('div','r');d.append(mk('span','d none'),mk('span','',n),mk('span','a',fmt(x)),mk('span','p',r.liab>0?(x/r.liab*100).toFixed(1)+'%':''));
+  ACC().filter(a=>grpOf(a)==='liab'&&(a.on||nz(m[a.id]))).forEach(a=>{
+    const x=nz(m[a.id]);
+    const d=mk('div','r');d.append(mk('span','d none'),mk('span','',a.name),mk('span','a',fmt(x)),mk('span','p',r.liab>0?(x/r.liab*100).toFixed(1)+'%':''));
     legL.appendChild(d);
   });
-  if(r.assets<=0){leg.innerHTML='<p style="font-size:.81rem;color:var(--ink-3);margin:.38rem 0 0">還沒有資料。到「填寫」把數字補上就會畫出來。</p>';return}
+  if(r.assets<=0){leg.appendChild(mk('p','rempty','還沒有資料。到「填寫」把數字補上就會畫出來。'));return}
+  /* 外幣只有一個帳戶有錢時，直接用帳戶名稱，例如日幣 */
+  const fxs=ACC().filter(a=>a.type==='fx'&&accVal(m,a)>0);
   MIX.forEach(s=>{
-    const x=v[s.k];if(x<=0)return;
+    const x=r[s.k];if(!(x>0))return;
     const pc=x/r.assets*100;
     const i=document.createElement('i');i.style.width=pc+'%';i.style.background=s.c;bar.appendChild(i);
-    const d=document.createElement('div');d.className='r';
-    d.innerHTML='<span class="d" style="background:'+s.c+'"></span><span>'+s.n+
-      '</span><span class="a">'+fmt(x)+'</span><span class="p">'+pc.toFixed(1)+'%</span>';
+    const d=mk('div','r');const dot=mk('span','d');dot.style.background=s.c;
+    d.append(dot,mk('span','',s.k==='fx'&&fxs.length===1?fxs[0].name:s.n),mk('span','a',fmt(x)),mk('span','p',pc.toFixed(1)+'%'));
     leg.appendChild(d);
   });
 }
@@ -670,17 +710,33 @@ function snapDate(ym,d){
 function checkFlags(m,r,p){
   const f=$('flag');const msgs=[];
   if(p){
-    const dstock=r.stock-(p.stkKgi+p.stkUnion);
-    const dcrypto=r.crypto-(p.okx+p.lido);
-    const djpy=m.jpy-p.jpy;
-    if(dstock>10000 && m.buy===0) msgs.push('台股市值比上月多了 '+fmt(dstock)+'，但買進填 0。定期定額那幾筆有扣款的話要填進去。');
-    if(djpy>0 && m.buy===0) msgs.push('日幣比上月多了 '+fmt(djpy)+' 円，換匯的錢要算在買進。');
-    if(dcrypto>10000 && m.buy===0) msgs.push('加密貨幣比上月多了 '+fmt(dcrypto)+'，有買進的話要填。');
+    const q=totals(p),buy0=nz(m.buy)===0;
+    const dstock=r.stock-q.stock,dcrypto=r.crypto-q.crypto;
+    if(dstock>10000&&buy0) msgs.push('股票市值比上月多了 '+fmt(dstock)+'，但買進填 0。定期定額那幾筆有扣款的話要填進去。');
+    ACC().filter(a=>a.type==='fx').forEach(a=>{
+      const d=nz(m[a.id])-nz(p[a.id]);
+      if(d>0&&buy0) msgs.push(a.name+'比上月多了 '+fmt(d)+(a.unit?' '+a.unit:'')+'，換匯的錢要算在買進。');
+    });
+    if(dcrypto>10000&&buy0) msgs.push('加密貨幣比上月多了 '+fmt(dcrypto)+'，有買進的話要填。');
     if(m.income===0) msgs.push('收入填 0，這個月的進帳記得補上，不然支出會被低估。');
+    if(r.loss>0&&r.dlent!==null&&-r.dlent<r.loss) msgs.push('拿不回來的錢填了 '+fmt(r.loss)+'，但待收回只少了 '+fmt(Math.max(0,-r.dlent))+'。拿不回來的部分也要從待收回減掉，不然支出會被少算。');
+    const fixed=nz(accts.fixed);
+    const low=r.spend!==null&&r.spend>=0&&fixed>0&&r.spend<fixed;
     if(r.spend!==null&&r.spend<0) msgs.push('支出算出來是負數，通常是漏填了收入或賣出，或是有人還錢、押金退回了，但「待收回的錢」還沒減少。');
+    if(low) msgs.push('這個月算出來的支出 '+fmt(r.spend)+'，比你設定的每月固定開銷 '+fmt(fixed)+' 還少，可能有錢進來但沒記成收入或賣出。');
+    /* 支出偏低又沒填賣出時，列出比上月少很多的投資帳戶，常見的是轉回銀行忘了填 */
+    if((low||(r.spend!==null&&r.spend<0))&&nz(m.sell)===0){
+      const drops=ACC().filter(a=>grpOf(a)==='inv'&&a.type!=='policy')
+        .map(a=>({a,d:accVal(p,a)-accVal(m,a)})).filter(x=>x.d>=1000).sort((x,y)=>y.d-x.d).slice(0,2);
+      if(drops.length) msgs.push(drops.map(x=>x.a.name+'比上月少了 '+fmt(x.d)).join('、')+'。如果有賣掉或轉回銀行，要把金額填在賣出。');
+    }
   }
-  if(msgs.length){f.hidden=false;f.innerHTML=msgs.join('<br><br>')}
-  else{f.hidden=true;f.innerHTML=''}
+  ACC().filter(a=>a.type==='fx').forEach(a=>{
+    if(nz(m[a.id])>0&&!nz(m[rateKey(a)])) msgs.push(a.name+'有金額，但匯率是 0，要填匯率才會算進資產。');
+  });
+  f.replaceChildren();
+  msgs.forEach((t,i)=>{if(i)f.append(mk('br'),mk('br'));f.append(t)});
+  f.hidden=!msgs.length;
 }
 
 function overviewRec(ym){
@@ -693,8 +749,6 @@ function refresh(){
   const m=read(),p=prevOf(m.ym),r=calc(m,p);
   $('mtxt').textContent=m.ym.replace('-','/');
   $('moveBtn').hidden=!months.some(x=>x.ym===m.ym);
-  const lr=months.find(x=>x.ym===m.ym);
-  $('legacyNote').hidden=!(lr&&lr.legacy);
   const ov=overviewRec(m.ym);
   const om=ov||m,orr=ov?calc(ov,prevOf(ov.ym)):r;
   const mo=ym=>(+ym.split('-')[1])+'月';
@@ -708,6 +762,7 @@ function refresh(){
     hs.replaceChildren('其中自己存下 ');
     const b1=mk('b',orr.saved>=0?'up':'down',sgn(orr.saved));hs.append(b1,'，投資漲跌 ');
     const b2=mk('b',orr.mkt>=0?'up':'down',sgn(orr.mkt));hs.append(b2);
+    if(orr.loss>0){hs.append('，損失 ');hs.append(mk('b','down','−'+fmt(orr.loss)))}
     hs.hidden=false;
   }else hs.hidden=true;
   $('s-cash').textContent=fmt(r.cash);
@@ -725,6 +780,8 @@ function refresh(){
   $('w-cc').textContent=fmt(r.cash);
   $('w-in').textContent=fmt(m.income);
   $('w-buy').textContent=fmt(m.buy);
+  $('w-prem').textContent=fmt(r.prem);
+  $('w-loss-row').hidden=!r.loss;$('w-loss').textContent=fmt(r.loss);
   $('w-sell').textContent=fmt(m.sell);
   $('w-dl').textContent=r.dliab===null?'—':sgn(r.dliab);
   $('w-dlent').textContent=r.dlent===null?'—':sgn(r.dlent);
@@ -965,9 +1022,11 @@ function drawList(){
       line('收入',fmt(inc));
       line('支出',fmt(r.spend));
       line('存下',sgn(r.saved)+(inc>0?' ・ 儲蓄率 '+Math.round(r.saved/inc*100)+'%':''),r.saved>=0?'up':'down');
+      if(r.loss>0)line('損失','−'+fmt(r.loss),'down');
       line('投資漲跌',sgn(r.mkt),r.mkt>=0?'up':'down');
       line('淨值變化',sgn(r.delta),'tot');
-      det.appendChild(mk('p','dnote','淨值變化 ＝ 存下 ＋ 投資漲跌'));
+      det.appendChild(mk('p','dnote',r.loss>0?'淨值變化 ＝ 存下 − 損失 ＋ 投資漲跌':'淨值變化 ＝ 存下 ＋ 投資漲跌'));
+      if(r.prem>0)det.appendChild(mk('p','dnote','保費 '+fmt(r.prem)+' 當成放進保單，算在存下；保單價值的變化算在投資漲跌'));
     }
     line('淨值',fmt(r.net),'net');
     const eb=mk('button','btn sec slim dedit','編輯這個月');
@@ -988,18 +1047,58 @@ function drawList(){
   drawCharts();
 }
 
+/* 要顯示的帳戶：啟用中的，加上這個月有數字的停用帳戶 */
+const visibleAccounts=rec=>ACC().filter(a=>a.on||(rec&&(nz(rec[a.id])!==0)));
+function rowEl(id,label,sub,em,ph){
+  const r=mk('div','row');
+  const l=mk('label','',label);l.htmlFor=id;r.appendChild(l);
+  if(sub)r.appendChild(mk('span','sub',sub));
+  const ib=mk('div','ib');
+  const inp=document.createElement('input');inp.id=id;inp.inputMode='decimal';inp.placeholder=ph||'0';
+  ib.append(inp,mk('em','',em||''));r.appendChild(ib);
+  return r;
+}
+function renderForm(rec){
+  const box={cash:$('rows-cash'),inv:$('rows-inv'),liab:$('rows-liab')};
+  Object.values(box).forEach(b=>b.replaceChildren());
+  visibleAccounts(rec).forEach(a=>{
+    const t=TYPES[tyOf(a)],b=box[t.g];
+    const sub=(a.on?'':'已停用，這個月還有數字所以先顯示。')+(a.sub||t.sub);
+    b.appendChild(rowEl(a.id,a.name,sub,a.unit||''));
+    if(a.type==='fx')b.appendChild(rowEl(rateKey(a),a.name+'匯率','1 '+(a.unit||'元外幣')+'換多少台幣','',a.defRate?String(a.defRate):'0'));
+  });
+  Object.values(box).forEach(b=>{if(!b.children.length)b.appendChild(mk('p','rempty','還沒有這類帳戶，可以到右上角齒輪的「帳戶」新增。'))});
+  F=ACC().flatMap(a=>a.type==='fx'?[a.id,rateKey(a)]:[a.id]).concat(FIXED).filter(id=>$(id));
+  bindInputs();
+}
+/* 帳戶改動後重畫填寫畫面，已經填的數字保留 */
+function rerenderKeep(){
+  const keep={};F.forEach(f=>{keep[f]=$(f).value});
+  const ym=$('ym').value||nowYM(),rec=months.find(x=>x.ym===ym);
+  const pseudo=Object.assign({},rec||{});
+  Object.keys(keep).forEach(k=>{if(keep[k]!=='')pseudo[k]=num(keep[k])});
+  renderForm(pseudo);
+  F.forEach(f=>{if(keep[f]!==undefined)$(f).value=keep[f]});
+  if(!rec)carry();
+  refresh();
+}
 function loadMonth(ym){
   dirty=false;
   const m=months.find(x=>x.ym===ym);
   $('ym').value=ym;
+  renderForm(m);
   if(m)F.forEach(f=>{const v=m[f];$(f).value=(v===undefined||v===null||v===''||Number(v)===0)?'':fmtIn(v)});
-  if(m&&!hasVal(m.lent)){const v=effLent(m);$('lent').value=v?fmtIn(v):''}
   setStep(0);refresh();
 }
 function carry(){
   const p=prevOf($('ym').value||nowYM());
-  if(!p){$('rate').value=$('rate').value||0.2;return}
-  CARRY.forEach(f=>{if(!$(f).value){const v=f==='lent'?effLent(p):p[f];$(f).value=v?fmtIn(v):''}});
+  const fxRates=ACC().filter(a=>a.on&&a.type==='fx');
+  if(!p){fxRates.forEach(a=>{const el=$(rateKey(a));if(el&&!el.value&&a.defRate)el.value=a.defRate});return}
+  const keys=[];
+  ACC().forEach(a=>{if(!a.on)return;if(TYPES[tyOf(a)].carry)keys.push(a.id);if(a.type==='fx')keys.push(rateKey(a))});
+  keys.push('lent','prem');
+  keys.forEach(f=>{const el=$(f);if(el&&!el.value){const v=p[f];el.value=nz(v)?fmtIn(v):''}});
+  fxRates.forEach(a=>{const el=$(rateKey(a));if(el&&!el.value&&a.defRate)el.value=a.defRate});
 }
 const ORDER={home:0,edit:1,log:2,set:3};
 let curView='home';
@@ -1166,7 +1265,7 @@ function pickMonth(cur,title){
 }
 
 /* 按壓水波紋 */
-const RP_SEL='.btn,.tab,.mini button,.ent,.mpill,.danger,.tview,.mgrid button,.yr button,.sh-link';
+const RP_SEL='.btn,.tab,.mini button,.ent,.mpill,.danger,.tview,.mgrid button,.yr button,.sh-link,.tgrid button,.arow .acts button';
 document.addEventListener('pointerdown',e=>{
   const t=e.target.closest&&e.target.closest(RP_SEL);
   if(!t||t.disabled)return;
@@ -1186,22 +1285,28 @@ document.addEventListener('focusout',()=>setTimeout(()=>{
 
 /* 數字輸入：千分位、鍵盤的「下一個」 */
 const fmtIn=v=>{const n=Number(v);return isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:4}):String(v)};
-document.querySelectorAll('#v-edit .card').forEach(card=>{
-  const ins=[...card.querySelectorAll('.ib input')];
-  ins.forEach((inp,i)=>{
-    inp.setAttribute('enterkeyhint',i===ins.length-1?'done':'next');
-    inp.setAttribute('autocomplete','off');
-    inp.addEventListener('keydown',e=>{
-      if(e.key!=='Enter')return;
-      e.preventDefault();
-      if(i<ins.length-1)ins[i+1].focus();else inp.blur();
-    });
-    inp.addEventListener('blur',()=>{
-      const v=inp.value.trim();if(v==='')return;
-      const n=num(v);if(isFinite(n)&&/[0-9]/.test(v))inp.value=fmtIn(n);
+function bindInputs(){
+  document.querySelectorAll('#v-edit .card').forEach(card=>{
+    const ins=[...card.querySelectorAll('.ib input')];
+    ins.forEach((inp,i)=>{
+      inp.setAttribute('enterkeyhint',i===ins.length-1?'done':'next');
+      if(inp.dataset.b)return;
+      inp.dataset.b='1';
+      inp.setAttribute('autocomplete','off');
+      inp.addEventListener('keydown',e=>{
+        if(e.key!=='Enter')return;
+        e.preventDefault();
+        const list=[...card.querySelectorAll('.ib input')],j=list.indexOf(inp);
+        if(j>-1&&j<list.length-1)list[j+1].focus();else inp.blur();
+      });
+      inp.addEventListener('blur',()=>{
+        const v=inp.value.trim();if(v==='')return;
+        const n=num(v);if(isFinite(n)&&/[0-9]/.test(v))inp.value=fmtIn(n);
+      });
+      inp.addEventListener('input',()=>{dirty=true;saveDraft();refresh()});
     });
   });
-});
+}
 
 /* 左右滑動切換分頁 */
 (function(){
@@ -1253,10 +1358,10 @@ const cloud={
     const r=await fetch((u||this.url())+'?t='+Date.now());
     const j=await r.json();
     if(!j.ok||!Array.isArray(j.months))throw new Error('pull');
-    return j.months;
+    return j;
   },
   async push(list,u){
-    const r=await fetch(u||this.url(),{method:'POST',body:JSON.stringify({months:list})});
+    const r=await fetch(u||this.url(),{method:'POST',body:JSON.stringify({months:list,accounts:accts})});
     const j=await r.json();
     if(!j.ok)throw new Error('push');
     ls.set(CLOUD_LAST,new Date().toISOString());
@@ -1273,6 +1378,19 @@ function mergeMonths(local,remote){
   });
   return Object.values(map).filter(x=>!isBlank(x));
 }
+/* 帳戶設定：較新的那份為主，另一邊多出來的帳戶也保留 */
+function mergeAccounts(remote){
+  if(!validAccts(remote))return false;
+  const newer=(remote.updatedAt||'')>(accts.updatedAt||'');
+  const base=newer?remote.list:accts.list,other=newer?accts.list:remote.list;
+  const ids=new Set(base.map(a=>a.id));
+  const next=Object.assign({},newer?remote:accts,{list:base.concat(other.filter(a=>!ids.has(a.id))).map(a=>Object.assign({},a)),
+    updatedAt:newer?remote.updatedAt:accts.updatedAt});
+  const changed=JSON.stringify(next)!==JSON.stringify(accts);
+  accts=next;storeAccounts();
+  return changed;
+}
+const sameAccts=r=>!!r&&JSON.stringify(r)===JSON.stringify(accts);
 function sameData(a,b){
   const k=x=>JSON.stringify([...x].sort((p,q)=>p.ym<q.ym?-1:1));
   return k(a)===k(b);
@@ -1293,16 +1411,17 @@ async function syncNow(){
   if(!cloud.url())return false;
   cloudUI('busy');
   try{
-    const remote=await cloud.pull();
+    const j=await cloud.pull(),remote=j.months;
+    const accChanged=mergeAccounts(j.accounts);
     const merged=mergeMonths(months,remote);
-    if(!sameData(merged,months)){
+    if(!sameData(merged,months)||accChanged){
       months=merged;
       try{await store.set(JSON.stringify(months))}catch(e){}
-      drawList();
+      renderAccts();drawList();
       const c=months.find(x=>x.ym===$('ym').value);
-      if(c&&!dirty)loadMonth(c.ym);else refresh();
+      if(c&&!dirty)loadMonth(c.ym);else rerenderKeep();
     }
-    if(!sameData(merged,remote)||ls.get(CLOUD_DIRTY))await cloud.push(months);
+    if(!sameData(merged,remote)||!sameAccts(j.accounts)||ls.get(CLOUD_DIRTY))await cloud.push(months);
     else ls.set(CLOUD_LAST,new Date().toISOString());
     cloudUI('ok');
     return true;
@@ -1391,44 +1510,59 @@ $('moveBtn').onclick=async()=>{
 };
 
 /* ---------- 匯出報表 ---------- */
-const EX_HEAD=['月份','存檔日','國泰世華','凱基','富邦','聯邦','現金合計','凱基證券','聯邦證券','日幣','日幣匯率','日幣折台幣',
-  'OKX','Lido','保單解約金','待收回的錢','總資產','國泰信用卡','學貸','總負債','淨值','較上月',
-  '收入','買進','賣出','負債變化','待收回變化','支出','存下','儲蓄率','備註'];
-function exportTable(){
-  const n=v=>Number(v)||0,R=v=>Math.round(v);
-  return [...months].sort((a,b)=>a.ym<b.ym?-1:1).map(m=>{
-    const r=calc(m,prevOf(m.ym));
-    const has=r.spend!==null;
-    const saved=has?R(n(m.income)-r.spend):'';
-    const rate=has&&n(m.income)>0?Math.round((n(m.income)-r.spend)/n(m.income)*100)+'%':'';
-    return [m.ym,m.savedAt||'',n(m.cathay),n(m.kgi),n(m.fubon),n(m.unionb),R(r.cash),
-      n(m.stkKgi),n(m.stkUnion),n(m.jpy),n(m.rate)||0.2,R(r.jpytwd),n(m.okx),n(m.lido),n(m.ins),R(r.lent),R(r.assets),
-      n(m.cc),n(m.loan),R(r.liab),R(r.net),r.delta===null?'':R(r.delta),
-      n(m.income),n(m.buy),n(m.sell),r.dliab===null?'':R(r.dliab),r.dlent===null?'':R(r.dlent),
-      has?R(r.spend):'',saved,rate,m.legacy?'舊版找回，現金、台股、加密貨幣只記總數，放在各自第一格':''];
+function exportCols(){
+  const R=v=>Math.round(v);
+  const lab=a=>a.name+(a.on?'':' 已停用');
+  const byG=g=>ACC().filter(a=>grpOf(a)===g);
+  const cols=[['月份',m=>m.ym],['存檔日',m=>m.savedAt||'']];
+  byG('cash').forEach(a=>cols.push([lab(a),m=>nz(m[a.id])]));
+  cols.push(['現金合計',(m,r)=>R(r.cash)]);
+  byG('inv').forEach(a=>{
+    cols.push([lab(a),m=>nz(m[a.id])]);
+    if(a.type==='fx')cols.push([a.name+'匯率',m=>nz(m[rateKey(a)])],[a.name+'折台幣',m=>R(accVal(m,a))]);
   });
+  cols.push(['投資合計',(m,r)=>R(r.inv)],['待收回的錢',(m,r)=>R(r.lent)],['總資產',(m,r)=>R(r.assets)]);
+  byG('liab').forEach(a=>cols.push([lab(a),m=>nz(m[a.id])]));
+  cols.push(['總負債',(m,r)=>R(r.liab)],['淨值',(m,r)=>R(r.net)],['較上月',(m,r)=>r.delta===null?'':R(r.delta)],
+    ['收入',m=>nz(m.income)],['買進',m=>nz(m.buy)],['保費',m=>nz(m.prem)],['賣出',m=>nz(m.sell)],
+    ['負債變化',(m,r)=>r.dliab===null?'':R(r.dliab)],['待收回變化',(m,r)=>r.dlent===null?'':R(r.dlent)],
+    ['拿不回來的錢',m=>nz(m.loss)],['支出',(m,r)=>r.spend===null?'':R(r.spend)],
+    ['存下',(m,r)=>r.saved===null?'':R(r.saved)],
+    ['儲蓄率',(m,r)=>r.saved!==null&&nz(m.income)>0?Math.round(r.saved/nz(m.income)*100)+'%':''],
+    ['投資漲跌',(m,r)=>r.mkt===null?'':R(r.mkt)]);
+  return cols;
 }
-function toCSV(rows){
-  const esc=v=>{const t=String(v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t};
-  return [EX_HEAD,...rows].map(r=>r.map(esc).join(',')).join('\n');
+function exportTable(){
+  const cols=exportCols();
+  const rows=[...months].sort((a,b)=>a.ym<b.ym?-1:1).map(m=>{const r=calc(m,prevOf(m.ym));return cols.map(c=>c[1](m,r))});
+  return {head:cols.map(c=>c[0]),rows};
+}
+function toCSV(t){
+  const esc=v=>{const x=String(v);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x};
+  return [t.head,...t.rows].map(r=>r.map(esc).join(',')).join('\n');
 }
 function exportText(){
-  const rows=exportTable();
+  const t=exportTable();
+  const names=g=>ACC().filter(a=>grpOf(a)===g).map(a=>a.type==='fx'?a.name+' × 匯率':a.name);
   return [
-    '資產負債表匯出，產生日期 '+todayLocal()+'，單位新台幣，共 '+rows.length+' 個月',
+    '資產負債表匯出，產生日期 '+todayLocal()+'，單位新台幣，共 '+t.rows.length+' 個月',
     '',
     '計算方式：',
-    '現金合計 ＝ 國泰世華、凱基、富邦、聯邦四家活存加總',
-    '總資產 ＝ 現金合計 ＋ 凱基證券 ＋ 聯邦證券 ＋ 日幣 × 匯率 ＋ OKX ＋ Lido ＋ 保單解約金 ＋ 待收回的錢',
-    '總負債 ＝ 國泰信用卡未繳總額 ＋ 學貸餘額',
+    '現金合計 ＝ '+names('cash').join(' ＋ '),
+    '投資合計 ＝ '+names('inv').join(' ＋ '),
+    '總資產 ＝ 現金合計 ＋ 投資合計 ＋ 待收回的錢',
+    '總負債 ＝ '+names('liab').join(' ＋ ')+'，信用卡填未繳總額，貸款填剩餘本金',
     '淨值 ＝ 總資產 − 總負債',
-    '支出 ＝ 上月現金 − 本月現金 ＋ 收入 − 買進 ＋ 賣出 ＋ 負債變化 − 待收回變化',
+    '支出 ＝ 上月現金 − 本月現金 ＋ 收入 − 買進 − 保費 ＋ 賣出 ＋ 負債變化 − 待收回變化 − 拿不回來的錢',
     '存下 ＝ 收入 − 支出，儲蓄率 ＝ 存下 ÷ 收入',
+    '淨值變化 ＝ 存下 − 拿不回來的錢 ＋ 投資漲跌',
     '待收回的錢是借給別人或租屋押金這類之後會拿回來的錢',
+    '拿不回來的錢是確定收不回來的借款或押金，另外列成損失，不算支出',
+    '保費當成把錢放進保單，不算支出；保單解約金一年調整一次，價值變化算在投資漲跌',
     '投資部位沒有更新時會沿用上個月的數字，所以較上月會受市價影響，支出不會',
     '',
     '資料：',
-    toCSV(rows)
+    toCSV(t)
   ].join('\n');
 }
 $('exText').onclick=async()=>{
@@ -1449,6 +1583,100 @@ $('exCsv').onclick=async()=>{
   setTimeout(()=>URL.revokeObjectURL(url),4000);
   toast('已下載 '+name);
 };
+/* ---------- 帳戶管理 ---------- */
+function renderAccts(){
+  const fc=$('fixedCost');if(fc&&document.activeElement!==fc)fc.value=nz(accts.fixed)?fmtIn(accts.fixed):'';
+  const box=$('acctList');box.replaceChildren();
+  GROUPS.forEach(G=>{
+    const list=ACC().filter(a=>grpOf(a)===G.g);
+    const w=mk('div','ag');w.appendChild(mk('p','agh',G.n));
+    if(!list.length)w.appendChild(mk('p','rempty','還沒有帳戶'));
+    list.forEach(a=>{
+      const r=mk('div','arow'+(a.on?'':' off'));
+      r.append(mk('span','an',a.name),mk('span','at',TYPES[tyOf(a)].n+(a.on?'':' ・ 已停用')));
+      const acts=mk('div','acts');
+      const rn=mk('button','','改名');rn.onclick=()=>renameAcct(a);
+      const tg=mk('button','',a.on?'停用':'啟用');tg.onclick=()=>toggleAcct(a);
+      acts.append(rn,tg);r.appendChild(acts);w.appendChild(r);
+    });
+    box.appendChild(w);
+  });
+}
+function askAcct(a){
+  let type=a?a.type:null;
+  return sheet.open((b,done)=>{
+    b.append(grabEl(),mk('p','sh-t',a?'帳戶改名':'新增帳戶'));
+    if(!a)b.appendChild(mk('p','sh-b','類型決定這個帳戶算在哪一組，還有要不要自動沿用上個月的數字。新增後類型不能改。'));
+    b.appendChild(mk('p','sh-lab','名稱'));
+    const inp=mk('input','sh-in');inp.value=a?a.name:'';inp.placeholder='例如 永豐、台新信用卡';
+    inp.maxLength=20;inp.autocomplete='off';inp.setAttribute('data-autofocus','');
+    const err=mk('p','sh-err');err.hidden=true;
+    b.append(inp,err);
+    if(!a){
+      b.appendChild(mk('p','sh-lab','類型'));
+      const grid=mk('div','tgrid');
+      Object.entries(TYPES).forEach(([k,t])=>{
+        const bt=mk('button');bt.type='button';bt.dataset.t=k;bt.append(mk('b','',t.n),mk('small','',t.d));
+        bt.onclick=()=>{type=k;err.hidden=true;grid.querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===bt))};
+        grid.appendChild(bt);
+      });
+      b.appendChild(grid);
+    }
+    const acts=mk('div','sh-acts');
+    const c=mk('button','btn sec','取消');c.onclick=()=>done(null);
+    const o=mk('button','btn',a?'儲存':'新增');
+    const bad=t=>{err.textContent=t;err.hidden=false;buzz([20,60,20])};
+    o.onclick=()=>{
+      const name=inp.value.trim();
+      if(!name)return bad('請填帳戶名稱');
+      if(ACC().some(x=>x!==a&&x.name===name))return bad('已經有叫「'+name+'」的帳戶了');
+      if(!type)return bad('請選一個類型');
+      done({name,type});
+    };
+    acts.append(c,o);b.append(acts);
+  });
+}
+async function afterAcctChange(msg){
+  saveAccounts();
+  renderAccts();rerenderKeep();drawList();
+  buzz(12);toast(msg);
+  if(cloud.url()){ls.set(CLOUD_DIRTY,'1');pushAfterSave()}
+}
+$('fixedCost').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur()}});
+$('fixedCost').addEventListener('change',()=>{
+  const el=$('fixedCost'),v=Math.max(0,Math.round(num(el.value)));
+  if(v===nz(accts.fixed))return;
+  accts.fixed=v;saveAccounts();
+  el.value=v?fmtIn(v):'';
+  refresh();buzz(10);
+  toast(v?'每月固定開銷設為 '+fmt(v):'已關閉固定開銷檢查');
+  if(cloud.url()){ls.set(CLOUD_DIRTY,'1');pushAfterSave()}
+});
+$('acctAdd').onclick=async()=>{
+  const v=await askAcct(null);if(!v)return;
+  const a={id:'a'+Date.now().toString(36),name:v.name,type:v.type,on:true};
+  ACC().push(a);
+  afterAcctChange('已新增「'+a.name+'」，'+(TYPES[a.type].g==='cash'?'填寫第一步':TYPES[a.type].g==='inv'?'填寫第二步':'填寫第三步')+'會出現');
+};
+async function renameAcct(a){
+  const v=await askAcct(a);if(!v||v.name===a.name)return;
+  a.name=v.name;afterAcctChange('已改名為「'+a.name+'」');
+}
+async function toggleAcct(a){
+  if(a.on){
+    const last=[...months].sort((x,y)=>x.ym<y.ym?1:-1)[0];
+    const bal=last?nz(last[a.id]):0;
+    const body=bal
+      ?'最近一筆紀錄 '+(+last.ym.split('-')[1])+'月 裡，'+a.name+' 還有 '+fmt(bal)+(a.unit?' '+a.unit:'')+'。停用後，之後的月份會把它當成 0，錢如果還在，淨值會少掉這筆。建議先把錢轉走，在那個月把它改成 0，再停用。'
+      :'停用後，填寫畫面不會再出現這個帳戶，過去月份的數字會保留。之後需要可以再啟用。';
+    const ok=await askConfirm({title:'停用「'+a.name+'」？',body,ok:'停用',danger:!!bal});
+    if(!ok)return;
+    a.on=false;afterAcctChange('已停用「'+a.name+'」');
+  }else{
+    a.on=true;afterAcctChange('已啟用「'+a.name+'」');
+  }
+}
+
 $('hnoteGo').onclick=()=>go('edit');
 $('gearBtn').onclick=()=>go('set');
 $('backBtn').onclick=()=>{if(history.state&&history.state.v==='set')history.back();else go('home')};
@@ -1472,26 +1700,28 @@ $('mbtn').onclick=async()=>{
   }
 };
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.v));
-F.forEach(f=>$(f).addEventListener('input',()=>{dirty=true;saveDraft();refresh()}));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveDraft()});
 window.addEventListener('pagehide',saveDraft);
 $('ym').addEventListener('change',()=>{
   const e=months.find(x=>x.ym===$('ym').value);
   if(e)loadMonth(e.ym);
-  else{dirty=false;F.forEach(f=>$(f).value='');carry();setStep(0);refresh()}
+  else{dirty=false;renderForm(null);F.forEach(f=>$(f).value='');carry();setStep(0);refresh()}
 });
 $('copyout').onclick=async()=>{
   const m=read(),all=months.filter(x=>x.ym!==m.ym).concat([m]);
-  const t=JSON.stringify(all);
+  const t=JSON.stringify({accounts:accts,months:all});
   try{await navigator.clipboard.writeText(t);buzz(10);toast('備份文字已複製')}catch(e){showCopy(t)}
 };
 $('pastein').onclick=async()=>{
   const t=await askPaste();if(!t)return;
   try{
-    const d=JSON.parse(t);if(!Array.isArray(d))throw 0;
-    months=d;try{await store.set(JSON.stringify(months))}catch(e){}
-    drawList();const c=months.find(x=>x.ym===$('ym').value);
-    if(c&&!dirty)loadMonth(c.ym);else refresh();
+    const d=JSON.parse(t);
+    const list=Array.isArray(d)?d:(d&&Array.isArray(d.months)?d.months:null);
+    if(!list)throw 0;
+    if(d.accounts&&validAccts(d.accounts)){accts=d.accounts;storeAccounts()}
+    months=list;try{await store.set(JSON.stringify(months))}catch(e){}
+    renderAccts();drawList();const c=months.find(x=>x.ym===$('ym').value);
+    if(c&&!dirty)loadMonth(c.ym);else rerenderKeep();
     toast('已還原 '+months.length+' 個月');
   }catch(e){toast('這段文字看起來不完整')}
 };
@@ -1500,17 +1730,18 @@ $('cl-connect').onclick=async()=>{
   if(!cloud.valid(u)){buzz([20,60,20]);toast('網址看起來不對，要是 script.google.com 開頭、/exec 結尾');return}
   $('cl-connect').textContent='連接中';$('cl-connect').disabled=true;
   try{
-    const remote=await cloud.pull(u);
+    const j=await cloud.pull(u),remote=j.months;
     ls.set(CLOUD_URL,u);
     const before=months.length;
+    mergeAccounts(j.accounts);
     const merged=mergeMonths(months,remote);
     months=merged;
     try{await store.set(JSON.stringify(months))}catch(e){}
-    if(!sameData(merged,remote))await cloud.push(months,u);
+    if(!sameData(merged,remote)||!sameAccts(j.accounts))await cloud.push(months,u);
     else ls.set(CLOUD_LAST,new Date().toISOString());
-    drawList();
+    renderAccts();drawList();
     const c=months.find(x=>x.ym===$('ym').value);
-    if(c&&!dirty)loadMonth(c.ym);else{carry();refresh()}
+    if(c&&!dirty)loadMonth(c.ym);else rerenderKeep();
     $('restore').hidden=true;
     cloudUI('ok');
     toast(remote.length&&!before?'已拿回 '+remote.length+' 個月的紀錄':'連接好了，之後每次儲存都會同步');
@@ -1533,27 +1764,27 @@ $('cl-off-btn').onclick=async()=>{
   try{history.replaceState({v:'home'},'')}catch(e){}
   $('ym').value=nowYM();
   await store.init();
+  const wiped=store.mode==='local'&&freshStart();
+  loadAccounts();renderAccts();
   try{const raw=await store.get();months=raw?JSON.parse(raw):[]}catch(e){months=[]}
   if(dropBlanks()){try{await store.set(JSON.stringify(months))}catch(e){}if(cloud.url())ls.set(CLOUD_DIRTY,'1')}
-  const found=importLegacy();
-  if(found.length){
-    try{await store.set(JSON.stringify(months))}catch(e){}
-    if(cloud.url())ls.set(CLOUD_DIRTY,'1');
-    setTimeout(()=>toast('從舊版找回了 '+found.map(x=>(+x.split('-')[1])+'月').join('、')+' 的紀錄'),900);
-  }
+  if(wiped)setTimeout(()=>toast('舊紀錄已經清掉，從頭開始記'),900);
   $('ym').value=defaultYM();
   const cur=months.find(x=>x.ym===$('ym').value);
-  if(cur)loadMonth(cur.ym);else{carry();setStep(0)}
+  if(cur)loadMonth(cur.ym);else{renderForm(null);carry();setStep(0)}
   drawList();refresh();
   cloudUI();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
   if(!months.length){
     go('edit');
-    if(!cloud.url())$('restore').hidden=false;
+    if(!cloud.url()&&!wiped)$('restore').hidden=false;
   }
   const dr=loadDraft();
   if(dr){
     $('ym').value=dr.ym;
+    const pseudo=Object.assign({},months.find(x=>x.ym===dr.ym)||{});
+    Object.keys(dr.vals).forEach(k=>{const v=dr.vals[k];if(v!==''&&v!==undefined)pseudo[k]=num(v)});
+    renderForm(pseudo);
     F.forEach(f=>{
       const v=dr.vals[f];if(v===undefined)return;
       $(f).value=(v!==''&&/[0-9]/.test(v))?fmtIn(num(v)):v;
